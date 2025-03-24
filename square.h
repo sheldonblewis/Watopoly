@@ -4,15 +4,12 @@
 #include <string>
 
 class Square {
-protected:
+    int id;
     std::string name;
-    int position;
 
 public:
-    Square(std::string name, int position);
-    virtual ~Square() = default;
+    Square(int id, std::string name);
     std::string getName() const;
-    virtual void landOn() = 0;
 };
 
 #endif

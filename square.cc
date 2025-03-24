@@ -1,4 +1,7 @@
 #include "square.h"
 
-Square::Square(std::string name, int position) : name{name}, position{position} {}
-std::string Square::getName() const { return name; }
+Square::Square(int id, std::string name) : id{id}, name{name} {}
+
+std::string Square::getName() const {
+    return name;
+}

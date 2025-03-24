@@ -1,5 +1,9 @@
+#include <iostream>
 #include "board.h"
+#include "square.h"
 #include "academicbuilding.h"
+
+using namespace std;
 
 Board::Board() {
     squares.emplace_back(std::make_unique<AcademicBuilding>("AL", 1, 40, "Arts1", 50));
@@ -26,6 +30,73 @@ Board::Board() {
     squares.emplace_back(std::make_unique<AcademicBuilding>("DC", 39, 400, "Math", 200));
 }
 
-Square* Board::getSquare(int position) const {
-    return squares[position].get();
+void Board::addPlayer(std::shared_ptr<Player> player) {
+    players.emplace_back(player);
+}
+
+std::shared_ptr<Square> Board::getSquare(int position) const {
+    return squares.at(position);
+}
+
+int Board::numSquares() const {
+    return squares.size();
+}
+
+void Board::drawBoard() const {
+    cout << "_________________________________________________________________________________________" << endl;
+    cout << "|Goose  |       |NEEDLES|       |       |V1     |       |       |CIF    |       |GO TO  |" << endl;
+    cout << "|Nesting|-------|HALL   |-------|-------|       |-------|-------|       |-------|TIMS   |" << endl;
+    cout << "|       |EV1    |       |EV2    |EV3    |       |PHYS   |B1     |       |B2     |       |" << endl;
+    cout << "|       |       |       |       |       |       |       |       |       |       |       |" << endl;
+    cout << "|_______|_______|_______|_______|_______|_______|_______|_______|_______|_______|_______|" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|-------|                                                                       |-------|" << endl;
+    cout << "|OPT    |                                                                       |EIT    |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|_______|                                                                       |_______|" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|-------|                                                                       |-------|" << endl;
+    cout << "|BMH    |                                                                       |ESC    |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|_______|                                                                       |_______|" << endl;
+    cout << "|SLC    |                                                                       |SLC    |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|_______|                                                                       |_______|" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|-------|                                                                       |-------|" << endl;
+    cout << "|LHI    |                                                                       |C2     |" << endl;
+    cout << "|       |             _____________________________________________             |       |" << endl;
+    cout << "|_______|            |                                             |            |_______|" << endl;
+    cout << "|UWP    |            | #   #  ##  #####  ###  ###   ###  #   #   # |            |REV    |" << endl;
+    cout << "|       |            | #   # #  #   #   #   # #  # #   # #   #   # |            |       |" << endl;
+    cout << "|       |            | # # # ####   #   #   # ###  #   # #    # #  |            |       |" << endl;
+    cout << "|       |            | # # # #  #   #   #   # #    #   # #     #   |            |       |" << endl;
+    cout << "|_______|            | ##### #  #   #    ###  #     ###  ## #  #   |            |_______|" << endl;
+    cout << "|       |            |_____________________________________________|            |NEEDLES|" << endl;
+    cout << "|-------|                                                                       |HALL   |" << endl;
+    cout << "|CPH    |                                                                       |       |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|_______|                                                                       |_______|" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|-------|                                                                       |-------|" << endl;
+    cout << "|DWE    |                                                                       |MC     |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|_______|                                                                       |_______|" << endl;
+    cout << "|PAC    |                                                                       |COOP   |" << endl;
+    cout << "|       |                                                                       |FEE    |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|_______|                                                                       |_______|" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|-------|                                                                       |-------|" << endl;
+    cout << "|RCH    |                                                                       |DC     |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
+    cout << "|_______|_______________________________________________________________________|_______|" << endl;
+    cout << "|DC Tims|       |       |NEEDLES|       |MKV    |TUITION|       |SLC    |       |COLLECT|" << endl;
+    cout << "|Line   |-------|-------|HALL   |-------|       |       |-------|       |-------|OSAP   |" << endl;
+    cout << "|       |HH     |PAS    |       |ECH    |       |       |ML     |       |AL     |       |" << endl;
+    cout << "|       |       |       |       |       |       |       |       |       |       |       |" << endl;
+    cout << "|_______|_______|_______|_______|_______|_______|_______|_______|_______|_______|_______|" << endl;
 }

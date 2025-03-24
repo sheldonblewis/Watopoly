@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "deque": "cpp",
+        "list": "cpp",
+        "vector": "cpp",
+        "*.tcc": "cpp",
+        "system_error": "cpp",
+        "xlocale": "cpp",
+        "text_encoding": "cpp",
+        "typeinfo": "cpp"
+    }
+}

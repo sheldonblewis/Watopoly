@@ -2,17 +2,19 @@
 #define ACADEMICBUILDING_H
 
 #include "ownable.h"
+#include <string>
 
 class AcademicBuilding : public Ownable {
-    std::string block;
-    int improvements;
+    std::string monopolyBlock;
     int improvementCost;
+    int improvements = 0;
 
 public:
-    AcademicBuilding(std::string name, int position, int cost, std::string block, int improvementCost);
-    void landOn() override;
-    void buyImprovement();
-    void sellImprovement();
+    AcademicBuilding(std::string name, int position, int cost,
+                     std::string monopolyBlock, int improvementCost);
+
+    void display() const;
+    void action(Player &p);
 };
 
 #endif

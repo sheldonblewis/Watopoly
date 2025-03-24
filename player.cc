@@ -1,14 +1,24 @@
 #include "player.h"
+#include "board.h"
+#include <iostream>
+#include <random>
 
-Player::Player(std::string name, char symbol, int money, int position) :
-    name{name}, symbol{symbol}, money{money}, position{position}, timsCups{0} {}
+Player::Player(std::string name, char symbol) : name{name}, symbol{symbol} {}
 
-void Player::move(int steps) {
-    position = (position + steps) % 40; 
+int Player::getPosition() const {
+    return position;
 }
 
-int Player::getPosition() const { return position; }
-std::string Player::getName() const { return name; }
-char Player::getSymbol() const { return symbol; }
-int Player::getMoney() const { return money; }
-void Player::changeMoney(int amount) { money += amount; }
+std::string Player::getName() const {
+    return name;
+}
+
+void Player::roll(Board& board) {
+    int die1 = rand() % 6 + 1;
+    int die2 = rand() % 6 + 1;
+    int move = die1 + die2;
+    std::cout << name << " rolled " << die1 << " + " << die2 << " = " << move << std::endl;
+
+    position = (position + move) % board.numSquares();
+    std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
+}

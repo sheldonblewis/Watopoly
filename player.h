@@ -2,25 +2,19 @@
 #define PLAYER_H
 
 #include <string>
-#include <vector>
-
-class Square;
+#include <memory>
+class Board;
 
 class Player {
     std::string name;
     char symbol;
-    int money;
-    int position;
-    int timsCups;
+    int position = 0;
 
 public:
-    Player(std::string name, char symbol, int money = 1500, int position = 0);
-    void move(int steps);
+    Player(std::string name, char symbol);
+    void roll(Board& board);
     int getPosition() const;
     std::string getName() const;
-    char getSymbol() const;
-    int getMoney() const;
-    void changeMoney(int amount);
 };
 
 #endif
