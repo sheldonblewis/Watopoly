@@ -6,9 +6,9 @@
 #include <vector>
 
 class AcademicBuilding;
+class Board;
 class Gym;
 class Residence;
-class Board;
 
 class Player : public std::enable_shared_from_this<Player> {
     std::string name;
@@ -18,7 +18,7 @@ class Player : public std::enable_shared_from_this<Player> {
 
     std::vector<AcademicBuilding*> academicBuildingsOwned;
     std::vector<Gym*> gymsOwned;
-    std::vector<Residence> residencesOwnded;
+    std::vector<Residence*> residencesOwned;
     
 
 public:
@@ -29,7 +29,9 @@ public:
     std::string getName() const;
     char getSymbol() const;
     void displayAssets() const;
-
+    std::vector<Gym*> getGymsOwned() const;
+    std::vector<Residence*>& getResidencesOwned();
+    void addAcademicBuilding(AcademicBuilding* ac);
     int getBalance() const;
 
     // return true if change balance was successfull 

@@ -2,6 +2,9 @@
 #include "player.h"
 #include "square.h"
 #include "academicbuilding.h"
+#include "residence.h"
+#include "gym.h"
+#include <string>
 #include <iostream>
 #include <vector>
 #include <random>
@@ -76,19 +79,19 @@ bool Player::ownsGym(Gym* gym) const {
 }
 
 bool Player::ownsResidence(Residence* residence) const {
-    if (residencesOwnded.empty()) {
+    if (residencesOwned.empty()) {
         return false;
     }
     
-    for (const auto& ownedRes : residencesOwnded) {
-        if (ownedRes == residence) {
+    for (const auto& ownedRes : residencesOwned) {
+        if (ownedRes->getName() == residence->getName()) {
             return true;
         }
     }
     return false;
 }
 
-bool Player::ownsAcademicBuilding(Residence* ac) const {
+bool Player::ownsAcademicBuilding(AcademicBuilding* ac) const {
     if (academicBuildingsOwned.empty()) {
         return false;
     }
@@ -101,4 +104,14 @@ bool Player::ownsAcademicBuilding(Residence* ac) const {
     return false;
 }
 
+std::vector<Gym*> Player::getGymsOwned() const {
+    return gymsOwned;
+}
 
+std::vector<Residence*>& Player::getResidencesOwned() {
+    return residencesOwned;
+}
+
+void Player::addAcademicBuilding(AcademicBuilding* ac) {
+    academicBuildingsOwned.emplace_back(ac);
+}

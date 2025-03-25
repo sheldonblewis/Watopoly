@@ -5,6 +5,8 @@
 #include <vector>
 #include <string>
 
+class Player;
+
 class AcademicBuilding : public Ownable {
     std::string monopolyBlock;
     int improvementCost;

@@ -2,7 +2,6 @@
 #define RESIDENCE_H
 
 #include "ownable.h"
-#include "player.h"
 #include <string>
 
 class Residence : public Ownable {

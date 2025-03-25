@@ -1,6 +1,8 @@
 #ifndef OWNABLE_H
 #define OWNABLE_H
 
+#include <memory>
+#include <string>
 #include "square.h"
 
 class Player;
@@ -15,6 +17,10 @@ public:
     Ownable(std::string name, int position, int cost);
     void purchase(Player* player);
     Player* getOwner() const;
+    int getCost() const;
+    bool isMortgaged() const;
+    void mortgage();
+    void unmortgage();
 };
 
 #endif

@@ -58,7 +58,11 @@ bool AcademicBuilding::improve(Player* player) {
 
 }
 
-bool AcademicBuilding::mortgage() {}   // TODO IMPLEMENT
+bool AcademicBuilding::mortgage() {
+  return false;
+}   // TODO IMPLEMENT
 
-bool AcademicBuilding::unmortgage() {} // TODO IMPLEMENT 
+bool AcademicBuilding::unmortgage() {
+  return false;
+} // TODO IMPLEMENT 
 

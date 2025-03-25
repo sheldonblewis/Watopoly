@@ -15,13 +15,9 @@ int Gym::calculateFees() {
     int die2 = rand() % 6 + 1;
     int sum = die1 + die2;
 
-    if (owner->gymsOwned.size() == 1) {
+    if (owner->getGymsOwned().size() == 1) {
         return 4 * sum;
     } else {
         return 10 * sum;
     }
-
-
 }
-
-

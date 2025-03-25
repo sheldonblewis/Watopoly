@@ -38,14 +38,12 @@ void Square::addPlayer(std::shared_ptr<Player> player) {
 }
 
 void Square::removePlayer(std::shared_ptr<Player> player) {
-    for (int i = 0; i < players.size(); ++i) {
+    for (size_t i = 0; i < players.size(); ++i) {
         if (players[i] == player) {
             players.erase(players.begin() + i);
             return;
         }
     }
-std::string Square::getId() const {
-    return id;
 }
 
 int Square::getPosition() const {
