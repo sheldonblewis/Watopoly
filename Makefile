@@ -15,8 +15,4 @@ $(EXEC): $(OBJECTS)
 
 .PHONY: clean
 clean:
-ifeq ($(OS),Windows_NT)
-	del /Q $(subst /,\,$(OBJECTS) $(DEPENDS) $(EXEC)) 2>nul || exit 0
-else
 	rm -f $(OBJECTS) $(DEPENDS) $(EXEC)
-endif

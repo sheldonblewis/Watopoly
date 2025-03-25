@@ -9,6 +9,7 @@
 #include "player.h"
 
 int main() {
+    srand(time(nullptr));
     Board board;
     std::vector<std::shared_ptr<Player>> players;
 
@@ -55,9 +56,46 @@ int main() {
                 std::cout << "Invalid or already taken character. Try again.\n";
             }
         }
-
+        
         auto player = std::make_shared<Player>(name, symbol);
         board.addPlayer(player);
         players.push_back(player);
+    }
+
+    std::cout << "Game starting!" << std::endl;
+    board.getSquare(0)->addPlayer(players[0]);
+    int currentPlayerIndex = 0;
+    std::string command;
+
+    board.drawBoard();
+
+    while (players.size() > 1) {
+        auto currentPlayer = players[currentPlayerIndex];
+        std::cout << "\nIt's " << currentPlayer->getName() << "'s turn (" << currentPlayer->getSymbol() << ")." << std::endl;
+
+        while (true) {
+            std::cout << "> ";
+            std::cin >> command;
+
+            if (command == "roll") {
+                int prevPos = currentPlayer->roll(board);
+                board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
+                board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
+                board.drawBoard();
+                break;
+            } else if (command == "next") {
+                break;
+            } else if (command == "assets") {
+                currentPlayer->displayAssets();
+            } else if (command == "all") {
+                for (auto& p : players) {
+                    p->displayAssets();
+                }
+            } else {
+                std::cout << "Unknown command. Try again." << std::endl;
+            }
+        }
+        
+        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
 }

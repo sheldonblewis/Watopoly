@@ -5,16 +5,19 @@
 #include <memory>
 class Board;
 
-class Player {
+class Player : public std::enable_shared_from_this<Player> {
     std::string name;
     char symbol;
     int position = 0;
+    int money = 1500;
 
 public:
     Player(std::string name, char symbol);
-    void roll(Board& board);
+    int roll(Board& board);
     int getPosition() const;
     std::string getName() const;
+    char getSymbol() const;
+    void displayAssets() const;
 };
 
 #endif
