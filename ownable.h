@@ -12,7 +12,7 @@ protected:
     bool mortgaged;
 
 public:
-    Ownable(std::string name, int position, int cost);
+    Ownable(std::string name, int position, int cost, std::string id);
     void purchase(Player* player);
     Player* getOwner() const;
 };

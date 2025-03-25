@@ -4,12 +4,16 @@
 #include <string>
 
 class Square {
-    int id;
-    std::string name;
+    int position;
+    std::string name;    
+    std::string id;
+
 
 public:
     Square(int id, std::string name);
     std::string getName() const;
+    std::string getId() const;
+    int getPosition() const;
 };
 
 #endif
