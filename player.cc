@@ -1,6 +1,8 @@
 #include "player.h"
 #include "board.h"
+#include "academicbuilding.h"
 #include <iostream>
+#include <vector>
 #include <random>
 
 Player::Player(std::string name, char symbol) : name{name}, symbol{symbol} {}
@@ -15,6 +17,10 @@ std::string Player::getName() const {
 
 int Player::getBalance() const{
     return balance;
+}
+
+std::vector<AcademicBuilding*> Player::getACOwned() const {
+    return academicBuildingsOwned;
 }
 
 void Player::roll(Board& board) {

@@ -25,6 +25,7 @@ public:
     Player(std::string name, char symbol);
     void roll(Board& board);
     int getPosition() const;
+    std::vector<AcademicBuilding*> getACOwned() const;
     std::string getName() const;
 
     int getBalance() const;

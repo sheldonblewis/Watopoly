@@ -1,4 +1,5 @@
 #include "academicbuilding.h"
+#include "player.h"
 #include <vector>
 #include <iostream>
 
@@ -24,7 +25,7 @@ bool AcademicBuilding::improve(Player* player) {
 
     int counter = 0;
 
-    for (const auto& building : owner->academicBuildingsOwned) {
+    for (const auto& building : owner->getACOwned()) {
       if (building->getMonopolyBlock() == monopolyBlock) {
           counter++;
       }
