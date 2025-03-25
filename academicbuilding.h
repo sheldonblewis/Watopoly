@@ -12,7 +12,7 @@ class AcademicBuilding : public Ownable {
     std::vector<int> tuitions;
 
 public:
-    AcademicBuilding(std::string name, int position, int cost, std::string id,
+    AcademicBuilding(std::string name, int position, int cost,
                      std::string monopolyBlock, int improvementCost, std::vector<int> tuitions);
 
     // returns buildings monopoly block

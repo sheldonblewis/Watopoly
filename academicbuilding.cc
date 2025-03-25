@@ -3,9 +3,9 @@
 #include <vector>
 #include <iostream>
 
-AcademicBuilding::AcademicBuilding(std::string name, int position, int cost, std::string id,
+AcademicBuilding::AcademicBuilding(std::string name, int position, int cost,
                                    std::string monopolyBlock, int improvementCost, std::vector<int> tuitions)
-    : Ownable{name, position, cost, id},
+    : Ownable{name, position, cost},
       monopolyBlock{monopolyBlock},
       improvementCost{improvementCost}, 
       tuitions{tuitions} {}

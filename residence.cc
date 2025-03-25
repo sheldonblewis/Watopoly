@@ -2,8 +2,8 @@
 #include "player.h"
 #include <iostream>
 
-Residence::Residence(std::string name, int position, int cost, std::string id)
-    : Ownable{name, position, cost, id} {}
+Residence::Residence(std::string name, int position, int cost)
+    : Ownable{name, position, cost} {}
 
 int Residence::calculateFees() {
     if (!owner) {

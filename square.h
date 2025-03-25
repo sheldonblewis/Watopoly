@@ -5,8 +5,7 @@
 
 class Square {
     int position;
-    std::string name;    
-    std::string id;
+    std::string name;
 
 
 public:

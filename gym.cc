@@ -3,8 +3,8 @@
 #include <iostream>
 #include <random>
 
-Gym::Gym(std::string name, int position, int cost, std::string id)
-    : Ownable{name, position, cost, id} {}
+Gym::Gym(std::string name, int position, int cost)
+    : Ownable{name, position, cost} {}
 
 int Gym::calculateFees() {
     if (!owner) {
