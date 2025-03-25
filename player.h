@@ -4,10 +4,10 @@
 #include <string>
 #include <memory>
 #include <vector>
-#include "gym.h"
-#include "residence.h"
-#include "academicbuilding.h"
 
+class AcademicBuilding;
+class Gym;
+class Residence;
 class Board;
 
 class Player : public std::enable_shared_from_this<Player> {
