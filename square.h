@@ -11,6 +11,7 @@ class Square {
     std::string name;
     std::vector<std::shared_ptr<Player>> players = {};
 
+
 public:
     Square(int position, std::string name);
     std::string getName() const;
@@ -18,6 +19,8 @@ public:
     void drawPlayers();
     void addPlayer(std::shared_ptr<Player> player);
     void removePlayer(std::shared_ptr<Player> player);
+    std::string getId() const;
+    int getPosition() const;
 };
 
 #endif

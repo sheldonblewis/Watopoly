@@ -44,4 +44,10 @@ void Square::removePlayer(std::shared_ptr<Player> player) {
             return;
         }
     }
+std::string Square::getId() const {
+    return id;
+}
+
+int Square::getPosition() const {
+    return position;
 }
