@@ -23,14 +23,17 @@ std::vector<AcademicBuilding*> Player::getACOwned() const {
     return academicBuildingsOwned;
 }
 
-void Player::roll(Board& board) {
+int Player::roll(Board& board) {
     int die1 = rand() % 6 + 1;
     int die2 = rand() % 6 + 1;
     int move = die1 + die2;
     std::cout << name << " rolled " << die1 << " + " << die2 << " = " << move << std::endl;
 
-    position = (position + move) % board.numSquares();
+    position = (position + move) % 40;
+
     std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
+
+    return (position - move) % 40;
 }
 
 bool Player::changeBalance(int amount) {
