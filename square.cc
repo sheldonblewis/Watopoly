@@ -16,19 +16,19 @@ const std::vector<std::shared_ptr<Player>>& Square::getPlayers() const {
 
 void Square::drawPlayers() {
     if (players.size() == 0) {
-        std::cout << "      ";
+        std::cout << "       ";
     } else if (players.size() == 1) {
-        std::cout << "  " << players[0]->getSymbol() << "   ";
+        std::cout << "   " << players[0]->getSymbol() << "   ";
     } else if (players.size() == 2) {
-        std::cout << " " << players[0]->getSymbol() << " " << players[1]->getSymbol() << "  ";
+        std::cout << "  " << players[0]->getSymbol() << " " << players[1]->getSymbol() << "  ";
     } else if (players.size() == 3) {
-        std::cout << players[0]->getSymbol() << " " << players[1]->getSymbol() << " " << players[2]->getSymbol() << " ";
+        std::cout << " " << players[0]->getSymbol() << " " << players[1]->getSymbol() << " " << players[2]->getSymbol() << " ";
     } else if (players.size() == 4) {
-        std::cout << players[0]->getSymbol() << players[1]->getSymbol() << " " << players[2]->getSymbol() << players[3]->getSymbol() << " ";
+        std::cout << " " << players[0]->getSymbol() << players[1]->getSymbol() << " " << players[2]->getSymbol() << players[3]->getSymbol() << " ";
     } else if (players.size() == 5) {
-        std::cout << players[0]->getSymbol() << players[1]->getSymbol() << players[2]->getSymbol() << players[3]->getSymbol() << players[4]->getSymbol() << " ";
+        std::cout << " " << players[0]->getSymbol() << players[1]->getSymbol() << players[2]->getSymbol() << players[3]->getSymbol() << players[4]->getSymbol() << " ";
     } else {
-        std::cout << players[0]->getSymbol() << players[1]->getSymbol() << players[2]->getSymbol() << players[3]->getSymbol() << players[4]->getSymbol() << players[5]->getSymbol();
+        std::cout << players[0]->getSymbol() << players[1]->getSymbol() << players[2]->getSymbol() << " " << players[3]->getSymbol() << players[4]->getSymbol() << players[5]->getSymbol();
     }
     return;
 }
