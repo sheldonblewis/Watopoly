@@ -9,6 +9,7 @@ class AcademicBuilding;
 class Board;
 class Gym;
 class Residence;
+class Ownable;
 
 class Player : public std::enable_shared_from_this<Player> {
     std::string name;
@@ -42,15 +43,36 @@ public:
     // that gym, false otherwise
     bool ownsGym(Gym* gym) const;
 
-
     // takes in a residence pointer and returns true if player owns
     // that residence, false otherwise
     bool ownsResidence(Residence* residence) const;
 
-
     // takes in a academic building pointer and returns true if player 
     // owns that academic building, false otherwise
     bool ownsAcademicBuilding(AcademicBuilding* ac) const;
+
+    // removes the property from the correcponding vector in the
+    // players attribute
+    // IMPORTANT: ASSUMES PLAYER OWNS PROPERTY
+    void removeProperty(Ownable* property);
+
+    // adds property to the corresponding 
+    void addProperty(Ownable* property);
+
+    // attempts to initiate trade between *this and other, property for
+    // property, returns true if successful, false otherwise
+    bool tradePforP(Player* other, Ownable* give, Ownable* recieve);
+
+
+    // attempts to initiate trade between *this and other, property for
+    // cash, returns true if successful, false otherwise
+    bool tradePforC(Player* other, Ownable* give, int amountRecieve);
+
+    // attempts to initiate trade between *this and other, property for
+    // cash, returns true if successful, false otherwise
+    bool tradePforC(Player* other, int amountGive, Ownable* recieve);
+
+
 };
 
 #endif

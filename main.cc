@@ -5,8 +5,20 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <sstream>
 #include "board.h"
 #include "player.h"
+
+bool isInteger(const std::string& str) {
+    try {
+        std::stoi(str);
+        return true;
+    } catch (const std::invalid_argument& e) {
+        return false;
+    } catch (const std::out_of_range& e) {
+        return false;
+    }
+}
 
 int main() {
     srand(time(nullptr));
@@ -91,6 +103,42 @@ int main() {
                 for (auto& p : players) {
                     p->displayAssets();
                 }
+            } else if (command == "trade") {
+                std::string name;
+                std::string give;
+                std::string recieve;
+
+                std::cin >> name;
+                std::cin >> give;
+                std::cin >> recieve;
+
+                bool giveInt = isInteger(give);
+                bool recieveInt = isInteger(recieve);
+
+                if (giveInt && recieveInt) { // if both give and recieve are integers, doesn't work
+                    std::cout << "\n Unable to trade money for money, try again." << std::endl;
+                } else {
+
+                    std::cout << "\nDoes " << name << " accept this trade? (Y/N): ";
+                    std::string decision;
+    
+                    std::cin >> decision;
+    
+                    if (decision == "Y") {
+                        if (!giveInt && !recieveInt) { // trade property for property                     
+                            // TODO: implement
+                        } else if (!giveInt && recieveInt) { // trade property for money
+                            // TODO: implement
+                        } else if (giveInt && !recieveInt) { // trade money for property
+                            // TODO: implement
+                        } 
+                    } else if (decision == "N") {
+                        std::cout << name << "declines the trade" << endl;
+                    } else {
+                        std::cout << "Invalid answer, try again" << std::endl;
+                    }
+                }
+                
             } else {
                 std::cout << "Unknown command. Try again." << std::endl;
             }

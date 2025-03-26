@@ -4,6 +4,7 @@
 #include "academicbuilding.h"
 #include "residence.h"
 #include "gym.h"
+#include "ownable.h"
 #include <string>
 #include <iostream>
 #include <vector>
@@ -114,4 +115,82 @@ std::vector<Residence*>& Player::getResidencesOwned() {
 
 void Player::addAcademicBuilding(AcademicBuilding* ac) {
     academicBuildingsOwned.emplace_back(ac);
+}
+
+void Player::addProperty(Ownable* property) {
+    if (auto ab = dynamic_cast<AcademicBuilding*>(property))
+        academicBuildingsOwned.push_back(ab);
+    else if (auto gym = dynamic_cast<Gym*>(property))
+        gymsOwned.push_back(gym);
+    else if (auto res = dynamic_cast<Residence*>(property))
+        residencesOwned.push_back(res);
+}
+
+void Player::removeProperty(Ownable* property) {
+    if (auto academic = dynamic_cast<AcademicBuilding*>(property)) {
+        academicBuildingsOwned.erase(
+            std::remove(academicBuildingsOwned.begin(), academicBuildingsOwned.end(), academic), 
+            academicBuildingsOwned.end()
+        );
+    } else if (auto gym = dynamic_cast<Gym*>(property)) {
+        gymsOwned.erase(
+            std::remove(gymsOwned.begin(), gymsOwned.end(), gym), 
+            gymsOwned.end()
+        );
+    } else if (auto residence = dynamic_cast<Residence*>(property)) {
+        residencesOwned.erase(
+            std::remove(residencesOwned.begin(), residencesOwned.end(), residence), 
+            residencesOwned.end()
+        );
+    }
+}
+
+bool Player::tradePforP(Player* other, Ownable* give, Ownable* recieve) {
+    if (give->getOwner() != this || recieve->getOwner() != other) {
+        return false; // one of the players doesn't own the property
+    }
+
+    removeProperty(give);
+    other->removeProperty(recieve);
+
+    addProperty(recieve);
+    other->addProperty(give);
+
+    recieve->changeOwner(this);
+    give->changeOwner(other);
+
+    return true;
+}
+
+bool Player::tradePforC(Player* other, Ownable* give, int amountRecieve) {
+    if (give->getOwner() != this || other->getBalance() < amountRecieve) {
+        return false; // player doesn't own property or other doesn't have enough money
+    }
+
+    removeProperty(give);
+    if (!other->changeBalance(-amountRecieve)) return false;
+
+    if(!changeBalance(amountRecieve)) return false;
+    other->addProperty(give);
+
+    give->changeOwner(other);
+
+    return true;
+
+}
+
+bool Player::tradePforC(Player* other, int amountGive, Ownable* recieve) {
+    if (getBalance() < amountGive || recieve->getOwner() != other) {
+        return false;
+    }
+
+    if (!changeBalance(-amountGive)) return false;
+    other->removeProperty(recieve);
+
+    addProperty(recieve);
+    if (!other->changeBalance(amountGive)) return false;
+
+    recieve->changeOwner(this);
+
+    return true;
 }

@@ -21,6 +21,9 @@ public:
     bool isMortgaged() const;
     void mortgage();
     void unmortgage();
+    void changeOwner(Player* newOwner);
+
+    virtual ~Ownable() = default;
 };
 
 #endif

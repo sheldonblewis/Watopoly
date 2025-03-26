@@ -17,3 +17,7 @@ bool Ownable::isMortgaged() const { return mortgaged; }
 void Ownable::mortgage() { mortgaged = true; }
 
 void Ownable::unmortgage() { mortgaged = false; }
+
+void Ownable::changeOwner(Player* newOwner) {
+    owner = newOwner;
+}
