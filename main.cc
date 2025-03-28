@@ -69,22 +69,27 @@ int main() {
     std::string command;
 
     board.drawBoard();
+    bool rolled;
 
     while (players.size() > 1) {
         auto currentPlayer = players[currentPlayerIndex];
         std::cout << "\nIt's " << currentPlayer->getName() << "'s turn (" << currentPlayer->getSymbol() << ")." << std::endl;
 
+        rolled = false;
+
         while (true) {
             std::cout << "> ";
             std::cin >> command;
 
-            if (command == "roll") {
+            if (command == "roll" && !rolled) {
+                rolled = true;
                 int prevPos = currentPlayer->roll(board);
                 board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
                 board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
                 board.drawBoard();
-                break;
-            } else if (command == "next") {
+            } else if (command == "buy" && rolled) {
+                // buy logic
+            } else if (command == "next" && rolled) {
                 break;
             } else if (command == "assets") {
                 currentPlayer->displayAssets();
