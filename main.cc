@@ -60,10 +60,11 @@ int main() {
         auto player = std::make_shared<Player>(name, symbol);
         board.addPlayer(player);
         players.push_back(player);
+        board.getSquare(0)->addPlayer(player);  // Start all players at position 0
+        std::cout << name << " has chosen " << charNames[symbol] << " (" << symbol << ").\n";
     }
 
     std::cout << "Game starting!" << std::endl;
-    board.getSquare(0)->addPlayer(players[0]);
     int currentPlayerIndex = 0;
     std::string command;
 

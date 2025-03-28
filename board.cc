@@ -138,7 +138,7 @@ void Board::drawBoard() const {
     cout << "|";
     this->getSquare(14)->drawPlayers();
     cout << "|                                                                       |";
-    this->getSquare(35)->drawPlayers();
+    this->getSquare(36)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|                                                                       |_______|" << endl;
     cout << "|       |                                                                       |       |" << endl;
@@ -147,18 +147,14 @@ void Board::drawBoard() const {
     cout << "|";
     this->getSquare(13)->drawPlayers();
     cout << "|                                                                       |";
-    this->getSquare(36)->drawPlayers();
+    this->getSquare(37)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|                                                                       |_______|" << endl;
     cout << "|PAC    |                                                                       |COOP   |" << endl;
     cout << "|       |                                                                       |FEE    |" << endl;
+    cout << "|       |                                                                       |       |" << endl;
     cout << "|";
     this->getSquare(12)->drawPlayers();
-    cout << "|                                                                       |";
-    this->getSquare(37)->drawPlayers();
-    cout << "|" << endl;
-    cout << "|";
-    this->getSquare(11)->drawPlayers();
     cout << "|                                                                       |";
     this->getSquare(38)->drawPlayers();
     cout << "|" << endl;
@@ -167,7 +163,7 @@ void Board::drawBoard() const {
     cout << "|-------|                                                                       |-------|" << endl;
     cout << "|RCH    |                                                                       |DC     |" << endl;
     cout << "|";
-    this->getSquare(10)->drawPlayers();
+    this->getSquare(11)->drawPlayers();
     cout << "|                                                                       |";
     this->getSquare(39)->drawPlayers();
     cout << "|" << endl;
@@ -175,6 +171,8 @@ void Board::drawBoard() const {
     cout << "|DC Tims|       |       |NEEDLES|       |MKV    |TUITION|       |SLC    |       |COLLECT|" << endl;
     cout << "|Line   |-------|-------|HALL   |-------|       |       |-------|       |-------|OSAP   |" << endl;
     cout << "|       |HH     |PAS    |       |ECH    |       |       |ML     |       |AL     |       |" << endl;
+    cout << "|";
+    this->getSquare(10)->drawPlayers();
     cout << "|";
     this->getSquare(9)->drawPlayers();
     cout << "|";
