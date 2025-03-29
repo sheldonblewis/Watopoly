@@ -53,6 +53,8 @@ public:
     // takes in a academic building pointer and returns true if player 
     // owns that academic building, false otherwise
     bool ownsAcademicBuilding(AcademicBuilding* ac) const;
+
+    bool ownsAll(const std::string& monopolyBlock) const;
 };
 
 #endif

@@ -22,6 +22,7 @@ public:
     bool isMortgaged() const;
     void mortgage();
     void unmortgage();
+    virtual int calculateFees() = 0;
 };
 
 #endif

@@ -59,9 +59,30 @@ Square* Board::getSquare(int position) const {
     return squares.at(position).get();
 }
 
+Square* Board::getSquareByName(const std::string& name) const {
+    for (const auto& square : squares) {
+        if (square->getName() == name) {
+            return square.get();
+        }
+    }
+    return nullptr;
+}
+
 void Board::drawBoard() const {
     cout << "_________________________________________________________________________________________" << endl;
-    cout << "|Goose  |       |NEEDLES|       |       |V1     |       |       |CIF    |       |GO TO  |" << endl;
+    cout << "|Goose  | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(21))->drawImprovements();
+    cout << " |NEEDLES| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(23))->drawImprovements();
+    cout << " | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(24))->drawImprovements();
+    cout << " |V1     | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(26))->drawImprovements();
+    cout << " | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(27))->drawImprovements();
+    cout << " |CIF    | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(29))->drawImprovements();
+    cout << " |GO TO  |" << endl;
     cout << "|Nesting|-------|HALL   |-------|-------|       |-------|-------|       |-------|TIMS   |" << endl;
     cout << "|       |EV1    |       |EV2    |EV3    |       |PHYS   |B1     |       |B2     |       |" << endl;
     cout << "|";
@@ -88,7 +109,11 @@ void Board::drawBoard() const {
     this->getSquare(30)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|_______|_______|_______|_______|_______|_______|_______|_______|_______|_______|" << endl;
-    cout << "|       |                                                                       |       |" << endl;
+    cout << "| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(19))->drawImprovements();
+    cout << " |                                                                       | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(31))->drawImprovements();
+    cout << " |" << endl;
     cout << "|-------|                                                                       |-------|" << endl;
     cout << "|OPT    |                                                                       |EIT    |" << endl;
     cout << "|";
@@ -97,7 +122,11 @@ void Board::drawBoard() const {
     this->getSquare(31)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|                                                                       |_______|" << endl;
-    cout << "|       |                                                                       |       |" << endl;
+    cout << "| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(18))->drawImprovements();
+    cout << " |                                                                       | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(32))->drawImprovements();
+    cout << " |" << endl;
     cout << "|-------|                                                                       |-------|" << endl;
     cout << "|BMH    |                                                                       |ESC    |" << endl;
     cout << "|";
@@ -115,7 +144,11 @@ void Board::drawBoard() const {
     this->getSquare(33)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|                                                                       |_______|" << endl;
-    cout << "|       |                                                                       |       |" << endl;
+    cout << "| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(16))->drawImprovements();
+    cout << " |                                                                       | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(34))->drawImprovements();
+    cout << " |" << endl;
     cout << "|-------|                                                                       |-------|" << endl;
     cout << "|LHI    |                                                                       |C2     |" << endl;
     cout << "|";
@@ -133,7 +166,9 @@ void Board::drawBoard() const {
     this->getSquare(35)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|            | ##### #  #   #    ###  #     ###  ## #  #   |            |_______|" << endl;
-    cout << "|       |            |_____________________________________________|            |NEEDLES|" << endl;
+    cout << "| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(14))->drawImprovements();
+    cout << " |            |_____________________________________________|            |NEEDLES|" << endl;
     cout << "|-------|                                                                       |HALL   |" << endl;
     cout << "|CPH    |                                                                       |       |" << endl;
     cout << "|";
@@ -142,7 +177,11 @@ void Board::drawBoard() const {
     this->getSquare(36)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|                                                                       |_______|" << endl;
-    cout << "|       |                                                                       |       |" << endl;
+    cout << "| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(13))->drawImprovements();
+    cout << " |                                                                       | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(37))->drawImprovements();
+    cout << " |" << endl;
     cout << "|-------|                                                                       |-------|" << endl;
     cout << "|DWE    |                                                                       |MC     |" << endl;
     cout << "|";
@@ -160,7 +199,11 @@ void Board::drawBoard() const {
     this->getSquare(38)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|                                                                       |_______|" << endl;
-    cout << "|       |                                                                       |       |" << endl;
+    cout << "| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(11))->drawImprovements();
+    cout << " |                                                                       | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(39))->drawImprovements();
+    cout << " |" << endl;
     cout << "|-------|                                                                       |-------|" << endl;
     cout << "|RCH    |                                                                       |DC     |" << endl;
     cout << "|";
@@ -169,7 +212,17 @@ void Board::drawBoard() const {
     this->getSquare(39)->drawPlayers();
     cout << "|" << endl;
     cout << "|_______|_______________________________________________________________________|_______|" << endl;
-    cout << "|DC Tims|       |       |NEEDLES|       |MKV    |TUITION|       |SLC    |       |COLLECT|" << endl;
+    cout << "|DC Tims| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(9))->drawImprovements();
+    cout << " | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(8))->drawImprovements();
+    cout << " |NEEDLES| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(6))->drawImprovements();
+    cout << " |MKV    |TUITION| ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(3))->drawImprovements();
+    cout << " |SLC    | ";
+    dynamic_cast<AcademicBuilding*>(this->getSquare(1))->drawImprovements();
+    cout << " |COLLECT|" << endl;
     cout << "|Line   |-------|-------|HALL   |-------|       |       |-------|       |-------|OSAP   |" << endl;
     cout << "|       |HH     |PAS    |       |ECH    |       |       |ML     |       |AL     |       |" << endl;
     cout << "|";

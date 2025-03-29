@@ -24,6 +24,20 @@ public:
     // player is intented to be the current player
     bool improve(Player* player);
 
+    bool degrade(Player* player) {
+        if (owner != player) {
+            return false;
+        }
+
+        if (improvements == 0) {
+            return false;
+        }
+
+        improvements--;
+        owner->changeBalance(improvementCost / 2); // half the cost of improvement
+        return true;
+    }
+
     // attempts to mortgage the academic building, returns true
     // if suceeded, false otherwise (should print out why it failed)
     bool mortgage();
@@ -36,6 +50,27 @@ public:
 
     int numImprovements() const {
         return improvements;
+    }
+
+    void drawImprovements() const {
+        for (int i = 0; i < 5; ++i) {
+            if (i < improvements) {
+                std::cout << "X";
+            } else {
+                std::cout << " ";
+            }
+        }
+    }
+
+    int getImprovementCost() const {
+        return improvementCost;
+    }
+
+    int calculateFees() override {
+        if (owner->ownsAll(monopolyBlock)) {
+            return tuitions[improvements] * 2;
+        }
+        return tuitions[improvements];
     }
 };
 

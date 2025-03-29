@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include "academicbuilding.h"
 #include "board.h"
 #include "ownable.h"
 #include "player.h"
@@ -79,12 +80,30 @@ int main() {
         rolled = false;
 
         while (true) {
+            std::cout << "Enter \"help\" for a list of commands.\n";
             Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
             if (rolled && board.getSquare(currentPlayer->getPosition())->isOwnable()) {
                 if (!ownable->getOwner()) {
                     std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
-                } else {
+                } else if (ownable->getOwner() != currentPlayer.get()) {
                     std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is owned by " << ownable->getOwner()->getName() << ".\n";
+                    if (ownable->isMortgaged()) {
+                        std::cout << "This property is mortgaged.\n";
+                    } else {
+                        int fees = ownable->calculateFees();
+                        if (currentPlayer->changeBalance(-fees)) {
+                            ownable->getOwner()->changeBalance(fees);
+                            std::cout << currentPlayer->getName() << " paid $" << fees << " in rent to " << ownable->getOwner()->getName() << ".\n";
+                        } else {
+                            std::cout << currentPlayer->getName() << " cannot afford the rent and is bankrupt!\n";
+                            players.erase(players.begin() + currentPlayerIndex);
+                            break;
+                        }
+                    }
+                } else if (currentPlayer->ownsAll(dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock())) {
+                    std::cout << "You own all properties in the " << dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock() << " monopoly block! Enter \"improve " << ownable->getName() << " buy\" to buy an improvement.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
+                } else {
+                    std::cout << "You own << " << board.getSquare(currentPlayer->getPosition())->getName() <<".\n";
                 }
             }
 
@@ -126,6 +145,87 @@ int main() {
                 for (auto& p : players) {
                     p->displayAssets();
                 }
+            } else if (command == "improve") {
+                std::string property, action;
+                std::cin >> property >> action;
+                
+                if (board.getSquareByName(property) == nullptr) {
+                    std::cout << "Property not found.\n";
+                    continue;
+                } else { 
+                    auto square = board.getSquareByName(property);
+
+                    auto academic = dynamic_cast<AcademicBuilding*>(square);
+                    if (!academic) {
+                        std::cout << "Improvement only applies to academic buildings.\n";
+                        continue;
+                    }
+                
+                    if (academic->getOwner() != currentPlayer.get()) {
+                        std::cout << "You don't own " << property << ".\n";
+                        continue;
+                    }
+
+                    if (action == "buy") {
+                        academic->improve(currentPlayer.get());
+                    } else if (action == "sell") {
+                        academic->degrade(currentPlayer.get());
+                    } else {
+                        std::cout << "Unknown action. Use 'buy' or 'sell'.\n";
+                    }
+                }
+            } else if (command == "mortgage") {
+                std::string property;
+                std::cin >> property;
+            
+                auto ownable = dynamic_cast<Ownable*>(board.getSquareByName(property));
+                if (!ownable) {
+                    std::cout << "Not a mortgageable property.\n";
+                    continue;
+                }
+            
+                if (ownable->getOwner() != currentPlayer.get()) {
+                    std::cout << "You don't own this property.\n";
+                    continue;
+                }
+            
+                ownable->mortgage();
+                std::cout << property << " has been mortgaged.\n";
+            
+            } else if (command == "unmortgage") {
+                std::string property;
+                std::cin >> property;
+            
+                auto ownable = dynamic_cast<Ownable*>(board.getSquareByName(property));
+                if (!ownable) {
+                    std::cout << "Not a mortgageable property.\n";
+                    continue;
+                }
+            
+                if (ownable->getOwner() != currentPlayer.get()) {
+                    std::cout << "You don't own this property.\n";
+                    continue;
+                }
+            
+                ownable->unmortgage();
+                std::cout << property << " has been unmortgaged.\n";
+            } else if (command == "help") {
+                std::cout <<
+                "Available commands:\n"
+                "• roll                        - Roll two dice and move forward.\n"
+                "• next                        - End your turn and pass to the next player.\n"
+                "• trade <name> <give> <receive> - Propose a trade with another player.\n"
+                "    (give/receive can be a property or an amount of money)\n"
+                "• improve <property> buy/sell - Buy or sell an improvement on a property.\n"
+                "• mortgage <property>         - Mortgage a property.\n"
+                "• unmortgage <property>       - Unmortgage a property.\n"
+                "• bankrupt                    - Declare bankruptcy (only when required).\n"
+                "• assets                      - Show current player’s assets.\n"
+                "• all                         - Show all players’ assets.\n"
+                "• save <filename>             - Save the current game state.\n"
+                "• help                        - Show this help message.\n\n"
+                "Note: Properties with improvements cannot be traded or mortgaged.\n"
+                << std::endl;
             } else {
                 std::cout << "Unknown command. Try again." << std::endl;
             }

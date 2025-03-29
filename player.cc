@@ -45,11 +45,12 @@ char Player::getSymbol() const {
 void Player::displayAssets() const {
     std::cout << "Player: " << name << " ($" << balance << ")" << std::endl;
     for (const auto& ac : academicBuildingsOwned) {
-        std::cout << "  Academic Building: " << ac->getName();
+        std::cout << "  Academic Building: " << ac->getName() << " ";
         if (ac->isMortgaged()) {
-            std::cout << " (mortgaged)";
-        } else if (ac->numImprovements() > 0) {
-            std::cout << ", " << ac->numImprovements() << " improvements";
+            std::cout << "(mortgaged)";
+        }
+        for (int i = 0; i < ac->numImprovements(); ++i) {
+            std::cout << "X";
         }
         std::cout << std::endl;
     }
@@ -120,6 +121,27 @@ bool Player::ownsAcademicBuilding(AcademicBuilding* ac) const {
         }
     }
     return false;
+}
+
+bool Player::ownsAll(const std::string& monopolyBlock) const {
+    if (academicBuildingsOwned.empty()) {
+        return false;
+    }
+    
+    int counter = 0;
+    for (const auto& ownedAC : academicBuildingsOwned) {
+        if (ownedAC->getMonopolyBlock() == monopolyBlock) {
+            counter++;
+        }
+    }
+
+    // arts1 and math are the only two blocks with only 2 
+    // academic buildings each
+    if (monopolyBlock == "Arts1" || monopolyBlock == "Math") {
+        return counter == 2;
+    } else {
+        return counter == 3;
+    }
 }
 
 std::vector<AcademicBuilding*> Player::getACOwned() const {

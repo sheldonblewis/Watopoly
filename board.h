@@ -15,9 +15,11 @@ public:
     Board();
     void addPlayer(std::shared_ptr<Player> player);
     Square* getSquare(int position) const;
+    Square* getSquareByName(const std::string& name) const;
     void drawBoard() const;
     std::vector<Player>& getPlayers();
     std::vector<std::unique_ptr<Square>>& getSquares();
+    
 };
 
 #endif
