@@ -21,6 +21,7 @@ public:
     void removePlayer(std::shared_ptr<Player> player);
     std::string getId() const;
     int getPosition() const;
+    virtual ~Square() = default;
 };
 
 #endif

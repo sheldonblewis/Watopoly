@@ -61,16 +61,16 @@ public:
 
     // attempts to initiate trade between *this and other, property for
     // property, returns true if successful, false otherwise
-    bool tradePforP(Player* other, Ownable* give, Ownable* recieve);
+    bool tradePforP(std::shared_ptr<Player> other, Ownable* give, Ownable* recieve);
 
 
     // attempts to initiate trade between *this and other, property for
     // cash, returns true if successful, false otherwise
-    bool tradePforC(Player* other, Ownable* give, int amountRecieve);
+    bool tradePforC(std::shared_ptr<Player> other, Ownable* give, int amountRecieve);
 
     // attempts to initiate trade between *this and other, property for
     // cash, returns true if successful, false otherwise
-    bool tradePforC(Player* other, int amountGive, Ownable* recieve);
+    bool tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* recieve);
 
 
 };

@@ -202,3 +202,22 @@ void Board::drawBoard() const {
 std::vector<std::unique_ptr<Square>>& Board::getSquares() {
     return squares;
 }
+
+Ownable* Board::findOwnableByName(std::string name) {
+    for (auto &square : squares) {
+        Ownable* ownable = dynamic_cast<Ownable*>(square.get());
+        if (ownable && ownable->getName() == name) {
+            return ownable;
+        }
+    }
+    return nullptr;
+}
+
+std::shared_ptr<Player> Board::findPlayerByName(std::string name) {
+    for (auto &player : players) {
+        if (player->getName() == name) {
+            return player;
+        }
+    }
+    return nullptr;
+}

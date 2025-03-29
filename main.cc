@@ -126,14 +126,56 @@ int main() {
     
                     if (decision == "Y") {
                         if (!giveInt && !recieveInt) { // trade property for property                     
-                            // TODO: implement
+                            Ownable* give_ptr = board.findOwnableByName(give);
+                            Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+                            
+                            if (give_ptr && recieve_ptr && player_trade) {
+                                bool trade_success = currentPlayer->tradePforP(player_trade, give_ptr, recieve_ptr);
+                                if (trade_success) {
+                                    std::cout << "Trade successful!" << std::endl;
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+                            } else {
+                                std::cout << "Player or one of the squares do not exist" << std::endl;
+                            }
+
+                            
                         } else if (!giveInt && recieveInt) { // trade property for money
-                            // TODO: implement
+                            int money_recieve = std::stoi(recieve);
+                            Ownable* give_ptr = board.findOwnableByName(give);
+                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+                            
+                            if (give_ptr && player_trade) {
+                                bool trade_success = currentPlayer->tradePforC(player_trade, give_ptr, money_recieve);
+                                if (trade_success) {
+                                    std::cout << "Trade successful!" << std::endl;
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+                            } else {
+                                std::cout << "Trade failed. Try again." << std::endl;
+                            }
+
                         } else if (giveInt && !recieveInt) { // trade money for property
-                            // TODO: implement
+                            int money_give = std::stoi(give);
+                            Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+
+                            if (recieve_ptr && player_trade) {
+                                bool trade_success = currentPlayer->tradeCforP(player_trade, money_give, recieve_ptr);
+                                if (trade_success) {
+                                    std::cout << "Trade successful!" << std::endl;
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+                            } else {
+                                std::cout << "Trade failed. Try again." << std::endl;
+                            }
                         } 
                     } else if (decision == "N") {
-                        std::cout << name << "declines the trade" << endl;
+                        std::cout << name << "declines the trade" << std::endl;
                     } else {
                         std::cout << "Invalid answer, try again" << std::endl;
                     }

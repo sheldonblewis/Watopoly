@@ -145,9 +145,9 @@ void Player::removeProperty(Ownable* property) {
     }
 }
 
-bool Player::tradePforP(Player* other, Ownable* give, Ownable* recieve) {
-    if (give->getOwner() != this || recieve->getOwner() != other) {
-        return false; // one of the players doesn't own the property
+bool Player::tradePforP(std::shared_ptr<Player> other, Ownable* give, Ownable* recieve) {
+    if (give->getOwner() != this || recieve->getOwner() != other.get()) {
+        return false; // One of the players doesn't own the property
     }
 
     removeProperty(give);
@@ -157,39 +157,44 @@ bool Player::tradePforP(Player* other, Ownable* give, Ownable* recieve) {
     other->addProperty(give);
 
     recieve->changeOwner(this);
-    give->changeOwner(other);
+    give->changeOwner(other.get());
 
     return true;
 }
 
-bool Player::tradePforC(Player* other, Ownable* give, int amountRecieve) {
+bool Player::tradePforC(std::shared_ptr<Player> other, Ownable* give, int amountRecieve) {
     if (give->getOwner() != this || other->getBalance() < amountRecieve) {
-        return false; // player doesn't own property or other doesn't have enough money
+        return false; // Player doesn't own property or other doesn't have enough money
+    }
+
+    // Ensure balance change happens first
+    if (!other->changeBalance(-amountRecieve)) return false;
+    if (!changeBalance(amountRecieve)) {
+        other->changeBalance(amountRecieve); // Refund the money back
+        return false;
     }
 
     removeProperty(give);
-    if (!other->changeBalance(-amountRecieve)) return false;
-
-    if(!changeBalance(amountRecieve)) return false;
     other->addProperty(give);
-
-    give->changeOwner(other);
+    give->changeOwner(other.get());
 
     return true;
-
 }
 
-bool Player::tradePforC(Player* other, int amountGive, Ownable* recieve) {
-    if (getBalance() < amountGive || recieve->getOwner() != other) {
+
+bool Player::tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* recieve) {
+    if (getBalance() < amountGive || recieve->getOwner() != other.get()) {
         return false;
     }
 
     if (!changeBalance(-amountGive)) return false;
+    if (!other->changeBalance(amountGive)) {
+        changeBalance(amountGive); // Refund money back
+        return false;
+    }
+
     other->removeProperty(recieve);
-
     addProperty(recieve);
-    if (!other->changeBalance(amountGive)) return false;
-
     recieve->changeOwner(this);
 
     return true;
