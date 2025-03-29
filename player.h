@@ -14,7 +14,7 @@ class Player : public std::enable_shared_from_this<Player> {
     std::string name;
     char symbol;
     int position = 0;
-    int balance;
+    int balance = 1500;
 
     std::vector<AcademicBuilding*> academicBuildingsOwned;
     std::vector<Gym*> gymsOwned;
@@ -32,6 +32,8 @@ public:
     std::vector<Gym*> getGymsOwned() const;
     std::vector<Residence*>& getResidencesOwned();
     void addAcademicBuilding(AcademicBuilding* ac);
+    void addGym(Gym* gym);
+    void addResidence(Residence* residence);
     int getBalance() const;
 
     // return true if change balance was successfull 

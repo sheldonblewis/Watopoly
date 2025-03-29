@@ -7,7 +7,7 @@ Residence::Residence(std::string name, int position, int cost)
 
 int Residence::calculateFees() {
     if (!owner) {
-        return 0; // if no owner, no tuition
+        return 0;
     } else if (owner->getResidencesOwned().size() == 1) {
         return 25;
     } else if (owner->getResidencesOwned().size() == 2) {
@@ -17,6 +17,6 @@ int Residence::calculateFees() {
     } else {
         return 200;
     }
-} // TODO: implemenmt
+}
 
 

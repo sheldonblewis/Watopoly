@@ -31,6 +31,12 @@ public:
     // attempts to unmortgage the academic building, returns true
     // if suceeded, false otherwise (should print out why it failed)
     bool unmortgage();
+
+    bool isOwnable() const;
+
+    int numImprovements() const {
+        return improvements;
+    }
 };
 
 #endif

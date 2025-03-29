@@ -11,9 +11,11 @@ class Square {
     std::string name;
     std::vector<std::shared_ptr<Player>> players = {};
 
-
 public:
     Square(int position, std::string name);
+    virtual ~Square() = default; // virtual destructor for proper cleanup of derived classes
+    virtual bool isOwnable() const = 0; // pure virtual function to enforce implementation in derived classes
+
     std::string getName() const;
     const std::vector<std::shared_ptr<Player>>& getPlayers() const;
     void drawPlayers();

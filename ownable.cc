@@ -10,6 +10,8 @@ void Ownable::purchase(Player* player) {
 
 Player* Ownable::getOwner() const { return owner; }
 
+void setOwner(std::shared_ptr<Player> newOwner);
+
 int Ownable::getCost() const { return cost; }
 
 bool Ownable::isMortgaged() const { return mortgaged; }

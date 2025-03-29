@@ -6,6 +6,7 @@
 #include <vector>
 #include <memory>
 #include "board.h"
+#include "ownable.h"
 #include "player.h"
 
 int main() {
@@ -78,17 +79,45 @@ int main() {
         rolled = false;
 
         while (true) {
+            Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
+            if (rolled && board.getSquare(currentPlayer->getPosition())->isOwnable()) {
+                if (!ownable->getOwner()) {
+                    std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
+                } else {
+                    std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is owned by " << ownable->getOwner()->getName() << ".\n";
+                }
+            }
+
             std::cout << "> ";
             std::cin >> command;
 
-            if (command == "roll" && !rolled) {
-                rolled = true;
-                int prevPos = currentPlayer->roll(board);
-                board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
-                board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
-                board.drawBoard();
-            } else if (command == "buy" && rolled) {
-                // buy logic
+            if (command == "roll") {
+                if (!rolled) {
+                    rolled = true;
+                    int prevPos = currentPlayer->roll(board);
+                    board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
+                    board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
+                    board.drawBoard();
+                } else {
+                    std::cout << "You have already rolled this turn.\n";
+                }
+            } else if (command == "buy") {
+                if (!rolled) {
+                    std::cout << "You must roll before you can buy.\n";
+                    continue;
+                } else if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
+                    if (ownable->getOwner()) {
+                        std::cout << "This property is already owned by " << ownable->getOwner()->getName() << ".\n";
+                    } else if (currentPlayer->changeBalance(-ownable->getCost())) {
+                        ownable->purchase(currentPlayer.get());
+                        std::cout << currentPlayer->getName() << " purchased " << ownable->getName() << " for $" << ownable->getCost() << ".\n";
+                        std::cout << "New balance: $" << currentPlayer->getBalance() << "\n";
+                    } else {
+                        std::cout << "Not enough funds to purchase this property.\n";
+                    }
+                } else {
+                    std::cout << "This property cannot be purchased.\n";
+                }
             } else if (command == "next" && rolled) {
                 break;
             } else if (command == "assets") {

@@ -1,17 +1,16 @@
 #include "academicbuilding.h"
 #include "player.h"
-#include <vector>
 #include <iostream>
+#include <vector>
 
-AcademicBuilding::AcademicBuilding(std::string name, int position, int cost,
-                                   std::string monopolyBlock, int improvementCost, std::vector<int> tuitions)
-    : Ownable{name, position, cost},
-      monopolyBlock{monopolyBlock},
-      improvementCost{improvementCost}, 
-      tuitions{tuitions} {}
+AcademicBuilding::AcademicBuilding(std::string name, int position, int cost, std::string monopolyBlock, int improvementCost, std::vector<int> tuitions) : Ownable{name, position, cost}, monopolyBlock{monopolyBlock}, improvementCost{improvementCost}, tuitions{tuitions} {}
 
 std::string AcademicBuilding::getMonopolyBlock() const {
   return monopolyBlock;
+}
+
+bool AcademicBuilding::isOwnable() const {
+  return true;
 }
 
 bool AcademicBuilding::improve(Player* player) {

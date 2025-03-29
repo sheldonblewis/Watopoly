@@ -1,13 +1,13 @@
-#include "board.h"
-#include "player.h"
-#include "square.h"
 #include "academicbuilding.h"
-#include "residence.h"
+#include "board.h"
 #include "gym.h"
-#include <string>
+#include "player.h"
+#include "residence.h"
+#include "square.h"
+#include <algorithm>
 #include <iostream>
-#include <vector>
 #include <random>
+#include <string>
 #include <vector>
 
 Player::Player(std::string name, char symbol) : name{name}, symbol{symbol} {}
@@ -22,10 +22,6 @@ std::string Player::getName() const {
 
 int Player::getBalance() const{
     return balance;
-}
-
-std::vector<AcademicBuilding*> Player::getACOwned() const {
-    return academicBuildingsOwned;
 }
 
 int Player::roll(Board& board) {
@@ -47,8 +43,30 @@ char Player::getSymbol() const {
 }
 
 void Player::displayAssets() const {
-    std::cout << "Player: " << name << " ($" << balance << "), Position: " << position << std::endl;
-    // Add more asset info here later (like owned properties)
+    std::cout << "Player: " << name << " ($" << balance << ")" << std::endl;
+    for (const auto& ac : academicBuildingsOwned) {
+        std::cout << "  Academic Building: " << ac->getName();
+        if (ac->isMortgaged()) {
+            std::cout << " (mortgaged)";
+        } else if (ac->numImprovements() > 0) {
+            std::cout << ", " << ac->numImprovements() << " improvements";
+        }
+        std::cout << std::endl;
+    }
+    for (const auto& res : residencesOwned) {
+        std::cout << "  Residence: " << res->getName();
+        if (res->isMortgaged()) {
+            std::cout << " (mortgaged)";
+        }
+        std::cout << std::endl;
+    }
+    for (const auto& gym : gymsOwned) {
+        std::cout << "  Gym: " << gym->getName();
+        if (gym->isMortgaged()) {
+            std::cout << " (mortgaged)";
+        }
+        std::cout << std::endl;
+    }
 }
 
 bool Player::changeBalance(int amount) {
@@ -104,6 +122,10 @@ bool Player::ownsAcademicBuilding(AcademicBuilding* ac) const {
     return false;
 }
 
+std::vector<AcademicBuilding*> Player::getACOwned() const {
+    return academicBuildingsOwned;
+}
+
 std::vector<Gym*> Player::getGymsOwned() const {
     return gymsOwned;
 }
@@ -113,5 +135,35 @@ std::vector<Residence*>& Player::getResidencesOwned() {
 }
 
 void Player::addAcademicBuilding(AcademicBuilding* ac) {
-    academicBuildingsOwned.emplace_back(ac);
+    auto it = std::lower_bound(
+        academicBuildingsOwned.begin(),
+        academicBuildingsOwned.end(),
+        ac,
+        [](AcademicBuilding* a, AcademicBuilding* b) {
+            return a->getPosition() < b->getPosition();
+        }
+    );
+    academicBuildingsOwned.insert(it, ac);
+}
+
+void Player::addGym(Gym* gym) {
+    auto it = std::lower_bound(
+        gymsOwned.begin(),
+        gymsOwned.end(),
+        gym,
+        [](Gym* a, Gym* b) {
+            return a->getPosition() < b->getPosition();
+        });
+    gymsOwned.insert(it, gym);
+}
+
+void Player::addResidence(Residence* residence) {
+    auto it = std::lower_bound(
+        residencesOwned.begin(),
+        residencesOwned.end(),
+        residence,
+        [](Residence* a, Residence* b) {
+            return a->getPosition() < b->getPosition();
+        });
+    residencesOwned.insert(it, residence);
 }
