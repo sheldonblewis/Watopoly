@@ -24,6 +24,9 @@ public:
     void unmortgage();
     virtual int calculateFees() = 0;
     virtual bool isGym() const { return false; }
+    void changeOwner(Player* newOwner);
+
+    virtual ~Ownable() = default;
 };
 
 #endif

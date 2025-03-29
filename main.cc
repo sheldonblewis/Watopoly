@@ -8,9 +8,21 @@
 #include <vector>
 #include <memory>
 #include "academicbuilding.h"
+#include <sstream>
 #include "board.h"
 #include "ownable.h"
 #include "player.h"
+
+bool isInteger(const std::string& str) {
+    try {
+        std::stoi(str);
+        return true;
+    } catch (const std::invalid_argument& e) {
+        return false;
+    } catch (const std::out_of_range& e) {
+        return false;
+    }
+}
 
 int main() {
     srand(time(nullptr));
@@ -252,6 +264,84 @@ int main() {
                 "• help                        - Show this help message.\n\n"
                 "Note: Properties with improvements cannot be traded or mortgaged.\n"
                 << std::endl;
+            } else if (command == "trade") {
+                std::string name;
+                std::string give;
+                std::string recieve;
+
+                std::cin >> name;
+                std::cin >> give;
+                std::cin >> recieve;
+
+                bool giveInt = isInteger(give);
+                bool recieveInt = isInteger(recieve);
+
+                if (giveInt && recieveInt) { // if both give and recieve are integers, doesn't work
+                    std::cout << "\n Unable to trade money for money, try again." << std::endl;
+                } else {
+
+                    std::cout << "\nDoes " << name << " accept this trade? (Y/N): ";
+                    std::string decision;
+    
+                    std::cin >> decision;
+    
+                    if (decision == "Y") {
+                        if (!giveInt && !recieveInt) { // trade property for property                     
+                            Ownable* give_ptr = board.findOwnableByName(give);
+                            Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+                            
+                            if (give_ptr && recieve_ptr && player_trade) {
+                                bool trade_success = currentPlayer->tradePforP(player_trade, give_ptr, recieve_ptr);
+                                if (trade_success) {
+                                    std::cout << "Trade successful!" << std::endl;
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+                            } else {
+                                std::cout << "Player or one of the squares do not exist" << std::endl;
+                            }
+
+                            
+                        } else if (!giveInt && recieveInt) { // trade property for money
+                            int money_recieve = std::stoi(recieve);
+                            Ownable* give_ptr = board.findOwnableByName(give);
+                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+                            
+                            if (give_ptr && player_trade) {
+                                bool trade_success = currentPlayer->tradePforC(player_trade, give_ptr, money_recieve);
+                                if (trade_success) {
+                                    std::cout << "Trade successful!" << std::endl;
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+                            } else {
+                                std::cout << "Trade failed. Try again." << std::endl;
+                            }
+
+                        } else if (giveInt && !recieveInt) { // trade money for property
+                            int money_give = std::stoi(give);
+                            Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+
+                            if (recieve_ptr && player_trade) {
+                                bool trade_success = currentPlayer->tradeCforP(player_trade, money_give, recieve_ptr);
+                                if (trade_success) {
+                                    std::cout << "Trade successful!" << std::endl;
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+                            } else {
+                                std::cout << "Trade failed. Try again." << std::endl;
+                            }
+                        } 
+                    } else if (decision == "N") {
+                        std::cout << name << "declines the trade" << std::endl;
+                    } else {
+                        std::cout << "Invalid answer, try again" << std::endl;
+                    }
+                }
+                
             } else {
                 std::cout << "Unknown command. Try again." << std::endl;
             }
