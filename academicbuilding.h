@@ -2,8 +2,9 @@
 #define ACADEMICBUILDING_H
 
 #include "ownable.h"
-#include <vector>
+#include <iostream>
 #include <string>
+#include <vector>
 
 class Player;
 
