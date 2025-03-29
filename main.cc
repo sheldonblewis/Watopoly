@@ -1,3 +1,5 @@
+// TODO: jail logic, non-property squares, trading, saving/loading game state, bankruptcy, and more detailed error handling.
+
 #include <algorithm>
 #include <iostream>
 #include <map>
@@ -62,7 +64,7 @@ int main() {
         auto player = std::make_shared<Player>(name, symbol);
         board.addPlayer(player);
         players.push_back(player);
-        board.getSquare(0)->addPlayer(player);  // Start all players at position 0
+        board.getSquare(0)->addPlayer(player);  // start all players at position 0
         std::cout << name << " has chosen " << charNames[symbol] << " (" << symbol << ").\n";
     }
 
@@ -82,28 +84,38 @@ int main() {
         while (true) {
             std::cout << "Enter \"help\" for a list of commands.\n";
             Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
-            if (rolled && board.getSquare(currentPlayer->getPosition())->isOwnable()) {
-                if (!ownable->getOwner()) {
-                    std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
-                } else if (ownable->getOwner() != currentPlayer.get()) {
-                    std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is owned by " << ownable->getOwner()->getName() << ".\n";
-                    if (ownable->isMortgaged()) {
-                        std::cout << "This property is mortgaged.\n";
-                    } else {
-                        int fees = ownable->calculateFees();
-                        if (currentPlayer->changeBalance(-fees)) {
-                            ownable->getOwner()->changeBalance(fees);
-                            std::cout << currentPlayer->getName() << " paid $" << fees << " in rent to " << ownable->getOwner()->getName() << ".\n";
+            if (rolled) {
+                if (board.getSquare(currentPlayer->getPosition())->isOwnable()){
+                    if (!ownable->getOwner()) {
+                        std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
+                    } else if (ownable->getOwner() != currentPlayer.get()) {
+                        std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is owned by " << ownable->getOwner()->getName() << ".\n";
+                        if (ownable->isMortgaged()) {
+                            std::cout << "This property is mortgaged.\n";
                         } else {
-                            std::cout << currentPlayer->getName() << " cannot afford the rent and is bankrupt!\n";
-                            players.erase(players.begin() + currentPlayerIndex);
-                            break;
+                            if (ownable->isGym()) {
+                                std::cout << "Gyms charge rent at 4x the dice roll if the owner has 1 gym, or 10x if they have both. Rolling again...\n";
+                            }
+                            int fees = ownable->calculateFees();
+                            if (currentPlayer->changeBalance(-fees)) {
+                                ownable->getOwner()->changeBalance(fees);
+                                std::cout << currentPlayer->getName() << " paid $" << fees << " in rent to " << ownable->getOwner()->getName() << ".\n";
+                            } else {
+                                std::cout << currentPlayer->getName() << " cannot afford the rent and is bankrupt!\n";
+                                players.erase(players.begin() + currentPlayerIndex);
+                                break;
+                            }
                         }
+                    } else if (currentPlayer->ownsAll(dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock())) {
+                        std::cout << "You own all properties in the " << dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock() << " monopoly block! Enter \"improve " << ownable->getName() << " buy\" to buy an improvement.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
+                    } else {
+                        std::cout << "You own << " << board.getSquare(currentPlayer->getPosition())->getName() <<".\n";
                     }
-                } else if (currentPlayer->ownsAll(dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock())) {
-                    std::cout << "You own all properties in the " << dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock() << " monopoly block! Enter \"improve " << ownable->getName() << " buy\" to buy an improvement.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
-                } else {
-                    std::cout << "You own << " << board.getSquare(currentPlayer->getPosition())->getName() <<".\n";
+                } else if (currentPlayer->getPosition() == 30) {
+                    std::cout << "Go to DC Tims Line! Do not pass go, do not collect $200.\n";
+                    currentPlayer->sendToJail();
+                    board.getSquare(30)->removePlayer(currentPlayer->shared_from_this());
+                    board.getSquare(10)->addPlayer(currentPlayer->shared_from_this());
                 }
             }
 
@@ -149,29 +161,43 @@ int main() {
                 std::string property, action;
                 std::cin >> property >> action;
                 
-                if (board.getSquareByName(property) == nullptr) {
-                    std::cout << "Property not found.\n";
+                if (action == "buy" && !rolled) {
+                    std::cout << "You must roll before you can buy improvements.\n";
                     continue;
-                } else { 
-                    auto square = board.getSquareByName(property);
-
-                    auto academic = dynamic_cast<AcademicBuilding*>(square);
-                    if (!academic) {
-                        std::cout << "Improvement only applies to academic buildings.\n";
+                } else {
+                    if (board.getSquareByName(property) == nullptr) {
+                        std::cout << "Property not found.\n";
                         continue;
-                    }
-                
-                    if (academic->getOwner() != currentPlayer.get()) {
-                        std::cout << "You don't own " << property << ".\n";
-                        continue;
-                    }
+                    } else { 
+                        auto square = board.getSquareByName(property);
 
-                    if (action == "buy") {
-                        academic->improve(currentPlayer.get());
-                    } else if (action == "sell") {
-                        academic->degrade(currentPlayer.get());
-                    } else {
-                        std::cout << "Unknown action. Use 'buy' or 'sell'.\n";
+                        auto academic = dynamic_cast<AcademicBuilding*>(square);
+                        if (!academic) {
+                            std::cout << "Improvement only applies to academic buildings.\n";
+                            continue;
+                        }
+                    
+                        if (academic->getOwner() != currentPlayer.get()) {
+                            std::cout << "You don't own " << property << ".\n";
+                            continue;
+                        }
+
+                        if (!currentPlayer->ownsAll(academic->getMonopolyBlock())) {
+                            std::cout << "You must own all properties in the " << academic->getMonopolyBlock() << " monopoly block to buy improvements.\n";
+                        }
+
+                        if (academic->isMortgaged()) {
+                            std::cout << "You cannot improve a mortgaged property.\n";
+                            continue;
+                        }
+
+                        if (action == "buy") {
+                            academic->improve(currentPlayer.get());
+                        } else if (action == "sell") {
+                            academic->degrade(currentPlayer.get());
+                        } else {
+                            std::cout << "Unknown action. Use 'buy' or 'sell'.\n";
+                        }
                     }
                 }
             } else if (command == "mortgage") {

@@ -15,6 +15,7 @@ class Player : public std::enable_shared_from_this<Player> {
     char symbol;
     int position = 0;
     int balance = 1500;
+    bool inJail = false;
 
     std::vector<AcademicBuilding*> academicBuildingsOwned;
     std::vector<Gym*> gymsOwned;
@@ -55,6 +56,11 @@ public:
     bool ownsAcademicBuilding(AcademicBuilding* ac) const;
 
     bool ownsAll(const std::string& monopolyBlock) const;
+
+    void sendToJail() {
+        position = 10;
+        inJail = true;
+    }
 };
 
 #endif

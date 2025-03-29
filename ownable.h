@@ -23,6 +23,7 @@ public:
     void mortgage();
     void unmortgage();
     virtual int calculateFees() = 0;
+    virtual bool isGym() const { return false; }
 };
 
 #endif

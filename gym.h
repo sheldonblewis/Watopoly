@@ -17,6 +17,10 @@ public:
     bool isOwnable() const override {
         return true;
     }
+
+    bool isGym() const override {
+        return true;
+    }
 };
 
 #endif

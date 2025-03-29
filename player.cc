@@ -30,7 +30,12 @@ int Player::roll(Board& board) {
     int move = die1 + die2;
     std::cout << name << " rolled " << die1 << " + " << die2 << " = " << move << std::endl;
 
-    position = (position + move) % 40;
+    position += move;
+    if (position >= 40) {
+        position -= 40;
+        changeBalance(200);
+        std::cout << name << " passed \"Collect OSAP\" and collected $200!" << std::endl;
+    }
 
     std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
 
