@@ -16,7 +16,9 @@ class Player : public std::enable_shared_from_this<Player> {
     char symbol;
     int position = 0;
     int balance = 1500;
-    bool inJail = false;
+    bool inTimsLine = false;
+    int turnsInTimsLine = 0;
+    int cups = 0;
 
     std::vector<AcademicBuilding*> academicBuildingsOwned;
     std::vector<Gym*> gymsOwned;
@@ -56,9 +58,9 @@ public:
 
     bool ownsAll(const std::string& monopolyBlock) const;
 
-    void sendToJail() {
+    void sendToTimsLine() {
         position = 10;
-        inJail = true;
+        inTimsLine = true;
     }
     // removes the property from the correcponding vector in the
     // players attribute
@@ -81,7 +83,8 @@ public:
     // cash, returns true if successful, false otherwise
     bool tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* recieve);
 
-
+    void loadState(std::istream& in);
+    void saveState(std::ostream& out) const;
 };
 
 #endif

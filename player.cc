@@ -14,6 +14,26 @@
 
 Player::Player(std::string name, char symbol) : name{name}, symbol{symbol} {}
 
+void Player::saveState(std::ostream& out) const {
+    out << name << " " << symbol << " " << cups << " " << balance << " " << position;
+    if (inTimsLine) out << " 1 " << turnsInTimsLine;
+    out << "\n";
+}
+
+void Player::loadState(std::istream& in) {
+    int dcTims, timsCounter;
+    in >> name >> symbol >> cups >> balance >> position;
+    if (position == 10) {
+        if (in.peek() == '\n') {
+            inTimsLine = false;
+        } else {
+            in >> dcTims >> timsCounter;
+            inTimsLine = true;
+            turnsInTimsLine = timsCounter;
+        }
+    }
+}
+
 int Player::getPosition() const {
     return position;
 }
