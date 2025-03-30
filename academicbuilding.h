@@ -8,7 +8,7 @@
 
 class Player;
 
-class AcademicBuilding : public Ownable {
+class AcademicBuilding : public Ownable, public std::enable_shared_from_this<AcademicBuilding> {
     std::string monopolyBlock;
     int improvementCost;
     int improvements = 0;
@@ -17,12 +17,11 @@ class AcademicBuilding : public Ownable {
 public:
     AcademicBuilding(std::string name, int position, int cost, std::string monopolyBlock, int improvementCost, std::vector<int> tuitions);
 
-    // returns buildings monopoly block
+    // returns building's monopoly block
     std::string getMonopolyBlock() const;
 
-    // attempts to inprove the academic building, returns true
-    // if suceeded, false otherwise (should print out why it failed)
-    // player is intented to be the current player
+    // attempts to inprove the academic building, returns true if suceeded, false otherwise (should print out why it failed)
+    // player is intended to be the current player
     bool improve(Player* player);
 
     bool degrade(Player* player) {
@@ -35,16 +34,14 @@ public:
         }
 
         improvements--;
-        owner->changeBalance(improvementCost / 2); // half the cost of improvement
+        owner->changeBalance(improvementCost / 2);
         return true;
     }
 
-    // attempts to mortgage the academic building, returns true
-    // if suceeded, false otherwise (should print out why it failed)
+    // attempts to mortgage the academic building, returns true if suceeded, false otherwise (should print out why it failed)
     bool mortgage();
 
-    // attempts to unmortgage the academic building, returns true
-    // if suceeded, false otherwise (should print out why it failed)
+    // attempts to unmortgage the academic building, returns true if suceeded, false otherwise (should print out why it failed)
     bool unmortgage();
 
     bool isOwnable() const;

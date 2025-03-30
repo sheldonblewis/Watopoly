@@ -19,8 +19,7 @@ bool AcademicBuilding::improve(Player* player) {
     return false;
   }
 
-  // first need to check whether the owner owns the rest
-  // of the buildings in the monopoly block
+  // first need to check whether the owner owns the rest of the buildings in the monopoly block
 
   int counter = 0;
 
@@ -30,8 +29,7 @@ bool AcademicBuilding::improve(Player* player) {
     }
   }
 
-  // arts1 and math are the only two blocks with only 2 
-  // academic buildings each
+  // arts1 and math are the only two blocks with only 2 academic buildings each
   if (monopolyBlock == "Arts1" || monopolyBlock == "Math") {
     if (counter != 2) {
       return false;
@@ -42,11 +40,9 @@ bool AcademicBuilding::improve(Player* player) {
     }
   }
 
-  // then we check whether the owner has enough money to 
-  // improve the building
+  // then we check whether the owner has enough money to improve the building
 
-  // owner->changeBalance attempts to take moeny from account
-  // if funds aren't sufficient, balance unchanged and return false
+  // owner->changeBalance attempts to take moeny from account if funds aren't sufficient, balance unchanged and return false
   
   if(!owner->changeBalance(-improvementCost)) {
     return false;
@@ -55,12 +51,3 @@ bool AcademicBuilding::improve(Player* player) {
   improvements++;
   return true;
 }
-
-bool AcademicBuilding::mortgage() {
-  return false;
-}   // TODO IMPLEMENT
-
-bool AcademicBuilding::unmortgage() {
-  return false;
-} // TODO IMPLEMENT 
-

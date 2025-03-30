@@ -97,7 +97,7 @@ void Player::displayAssets() const {
     }
 }
 
-int Player::getNumRUR() { return numRUR; };
+int Player::getNumCups() { return cups; };
 
 bool Player::changeBalance(int amount) {
     if (amount < 0) { // amount is negative so we are decreasing balance
@@ -106,9 +106,7 @@ bool Player::changeBalance(int amount) {
         }
     }
 
-    // if amount is positive, or negative but its absolute value isn't 
-    // greater than current balance
-    // -> change current balance
+    // if amount is positive, or negative but its absolute value isn't greater than current balance -> change current balance
     balance += amount;
     return true;
 }
@@ -164,8 +162,7 @@ bool Player::ownsAll(const std::string& monopolyBlock) const {
         }
     }
 
-    // arts1 and math are the only two blocks with only 2 
-    // academic buildings each
+    // arts1 and math are the only two blocks with only 2 academic buildings each
     if (monopolyBlock == "Arts1" || monopolyBlock == "Math") {
         return counter == 2;
     } else {
@@ -247,32 +244,32 @@ void Player::removeProperty(Ownable* property) {
     }
 }
 
-bool Player::tradePforP(std::shared_ptr<Player> other, Ownable* give, Ownable* recieve) {
-    if (give->getOwner() != this || recieve->getOwner() != other.get()) {
+bool Player::tradePforP(std::shared_ptr<Player> other, Ownable* give, Ownable* receive) {
+    if (give->getOwner() != this || receive->getOwner() != other.get()) {
         return false; // One of the players doesn't own the property
     }
 
     removeProperty(give);
-    other->removeProperty(recieve);
+    other->removeProperty(receive);
 
-    addProperty(recieve);
+    addProperty(receive);
     other->addProperty(give);
 
-    recieve->changeOwner(this);
+    receive->changeOwner(this);
     give->changeOwner(other.get());
 
     return true;
 }
 
-bool Player::tradePforC(std::shared_ptr<Player> other, Ownable* give, int amountRecieve) {
-    if (give->getOwner() != this || other->getBalance() < amountRecieve) {
+bool Player::tradePforC(std::shared_ptr<Player> other, Ownable* give, int amountreceive) {
+    if (give->getOwner() != this || other->getBalance() < amountreceive) {
         return false; // Player doesn't own property or other doesn't have enough money
     }
 
     // Ensure balance change happens first
-    if (!other->changeBalance(-amountRecieve)) return false;
-    if (!changeBalance(amountRecieve)) {
-        other->changeBalance(amountRecieve); // Refund the money back
+    if (!other->changeBalance(-amountreceive)) return false;
+    if (!changeBalance(amountreceive)) {
+        other->changeBalance(amountreceive); // Refund the money back
         return false;
     }
 
@@ -284,8 +281,8 @@ bool Player::tradePforC(std::shared_ptr<Player> other, Ownable* give, int amount
 }
 
 
-bool Player::tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* recieve) {
-    if (getBalance() < amountGive || recieve->getOwner() != other.get()) {
+bool Player::tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* receive) {
+    if (getBalance() < amountGive || receive->getOwner() != other.get()) {
         return false;
     }
 
@@ -295,9 +292,9 @@ bool Player::tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* 
         return false;
     }
 
-    other->removeProperty(recieve);
-    addProperty(recieve);
-    recieve->changeOwner(this);
+    other->removeProperty(receive);
+    addProperty(receive);
+    receive->changeOwner(this);
 
     return true;
 }
@@ -385,6 +382,7 @@ bool Player::mortgageProperties() {
         std::cout << "New Balance: " << getBalance() << std::endl;
         return true;
     }
+    return false;
 }
 
 bool Player::possibleToSurvive(int balance_owned) {
@@ -417,13 +415,13 @@ int Player::randNum(int n) {
     return rand() % n + 1;
 }
 
-void Player::chanceForRUR() {
+void Player::chanceForCup() {
     int num = randNum(100);
     
-    if (numRUR <= 4) {
+    if (cups <= 4) {
         if (num == 69) {
-            numRUR++;
-            std::cout << "Congratulations you have recieved a Roll Up the Rim Cup!" << std::endl;
+            cups++;
+            std::cout << "Congratulations you have received a Roll Up the Rim Cup!" << std::endl;
         }
     }
 }
@@ -447,37 +445,37 @@ int Player::move(int n, Board& board) {
     
 }
 
-void Player::sendToJail(Board& board) {
+void Player::sendToTimsLine(Board& board) {
     std::cout << "Go to DC Tims Line! Do not pass go, do not collect $200.\n";
-    std::cout << "You are now in Jail." << std::endl;
-    numRoundsInJail = 0;
-    inJail = true;
+    std::cout << "You are now in the DC Tims Line." << std::endl;
+    turnsInTimsLine = 0;
+    inTimsLine = true;
     board.getSquare(10)->addPlayer(shared_from_this());
     board.getSquare(getPosition())->removePlayer(shared_from_this());
     board.drawBoard();
     position = 10;
 }
 
-bool Player::isInJail() { return inJail; }
+bool Player::isInTimsLine() { return inTimsLine; }
 
-int Player::getNumRoundsInJail() { return numRoundsInJail; }
+int Player::getTurnsInTimsLine() { return turnsInTimsLine; }
 
-void Player::leaveJail() {
-    inJail = false;
-    numRoundsInJail = 0;
+void Player::leaveTimsLine() {
+    inTimsLine = false;
+    turnsInTimsLine = 0;
 }
 
-void Player::changeNumRoundsInJail() {
-    numRoundsInJail += 1;
+void Player::incTurnsInTimsLine() {
+    turnsInTimsLine += 1;
 }
 
-void Player::useRUR() {
-    if (numRUR > 0) {
-        numRUR -= 1;
+void Player::useCup() {
+    if (cups > 0) {
+        cups -= 1;
     }
 }
 
-bool Player::tryToLeaveJail() {
+bool Player::tryToLeaveTimsLine() {
     int die1 = rand() % 6 + 1;
     int die2 = rand() % 6 + 1;
 
@@ -492,4 +490,95 @@ bool Player::tryToLeaveJail() {
 
 void Player::changePosition(int n) {
     position = n;
+}
+
+void Player::declareBankruptcy(std::shared_ptr<Player> creditor, Board& board, std::vector<std::shared_ptr<Player>>& players) {
+    std::cout << name << " has declared bankruptcy!" << std::endl;
+
+    // Transfer properties to the creditor, or return to bank
+    for (auto& prop : academicBuildingsOwned) {
+        prop->changeOwner(nullptr);
+
+        // Remove improvements before auction or transfer
+        for (int i = 0; i < prop->numImprovements(); ++i) {
+            prop->degrade(this);
+        }
+
+        prop->unmortgage(); // Reset mortgage status
+
+        if (creditor) {
+            prop->changeOwner(creditor.get());
+            creditor->addAcademicBuilding(prop);
+        } else {
+            board.startAuction(std::dynamic_pointer_cast<Ownable>(prop->shared_from_this()), players);
+        }
+    }
+    academicBuildingsOwned.clear();
+
+    for (auto& res : residencesOwned) {
+        res->changeOwner(nullptr);
+
+        if (creditor) {
+            res->changeOwner(creditor.get());
+            creditor->addResidence(res);
+        } else {
+            board.startAuction(std::dynamic_pointer_cast<Ownable>(res->shared_from_this()), players);
+        }
+    }
+    residencesOwned.clear();
+
+    for (auto& gym : gymsOwned) {
+        gym->changeOwner(nullptr);
+
+        if (creditor) {
+            gym->changeOwner(creditor.get());
+            creditor->addGym(gym);
+        } else {
+            board.startAuction(std::dynamic_pointer_cast<Ownable>(gym->shared_from_this()), players);
+        }
+    }
+    gymsOwned.clear();
+
+    // Transfer Roll Up the Rim Cups
+    if (creditor) {
+        creditor->setCups(cups + creditor->getNumCups());
+    } else {
+        board.returnCups(cups);
+    }
+
+    cups = 0;
+    bankrupt = true;
+}
+
+bool Player::isBankrupt() const {
+    return bankrupt;
+}
+
+void Player::declareBankruptcyToBank(Board& board, std::vector<std::shared_ptr<Player>>& players) {
+    std::cout << name << " has declared bankruptcy to the Bank!\n";
+
+    for (auto& prop : academicBuildingsOwned) {
+        prop->changeOwner(nullptr);
+        for (int i = 0; i < prop->numImprovements(); ++i) {
+            prop->degrade(this);
+        }
+        prop->unmortgage();
+        board.startAuction(std::dynamic_pointer_cast<Ownable>(prop->shared_from_this()), players);
+    }
+
+    for (auto& prop : gymsOwned) {
+        prop->changeOwner(nullptr);
+        prop->unmortgage();
+        board.startAuction(std::dynamic_pointer_cast<Ownable>(prop->shared_from_this()), players);
+    }
+
+    for (auto& prop : residencesOwned) {
+        prop->changeOwner(nullptr);
+        prop->unmortgage();
+        board.startAuction(std::dynamic_pointer_cast<Ownable>(prop->shared_from_this()), players);
+    }
+
+    board.returnCups(cups);
+    cups = 0;
+    bankrupt = true;
 }

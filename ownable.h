@@ -17,7 +17,6 @@ public:
     Ownable(std::string name, int position, int cost);
     void purchase(Player* player);
     Player* getOwner() const;
-    void setOwner(std::shared_ptr<Player> newOwner);
     int getCost() const;
     bool isMortgaged() const;
     void mortgage();

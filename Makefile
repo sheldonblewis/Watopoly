@@ -15,4 +15,4 @@ $(EXEC): $(OBJECTS)
 
 .PHONY: clean
 clean:
-	rm -f $(EXEC) $(OBJECTS) $(DEPENDS)
+	rm -f watopoly *.o *.d nul

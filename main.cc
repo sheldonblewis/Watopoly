@@ -1,14 +1,13 @@
-// TODO: jail logic, non-property squares, trading, saving/loading game state, bankruptcy, and more detailed error handling.
-
 #include <algorithm>
+#include <fstream>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <set>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <memory>
 #include "academicbuilding.h"
-#include <sstream>
 #include "board.h"
 #include "ownable.h"
 #include "player.h"
@@ -24,10 +23,15 @@ bool isInteger(const std::string& str) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     srand(time(nullptr));
     Board board;
     std::vector<std::shared_ptr<Player>> players;
+
+    if (argc > 1 && std::string(argv[1]) == "-load" && argc > 2) {
+        std::ifstream file(argv[2]);
+        board.loadState(file, players);
+    }
 
     std::vector<char> allowedChars = {'G', 'B', 'D', 'P', 'S', '$', 'L', 'T'};
     std::map<char, std::string> charNames = {
@@ -124,12 +128,12 @@ int main() {
                     } else {
                         std::cout << "You own " << board.getSquare(currentPlayer->getPosition())->getName() <<".\n";
                     }
-                } else if (!board.getSquare(currentPlayer->getPosition())->isOwnable()) { // landed on a non-ownable square
+                } else if (!board.getSquare(currentPlayer->getPosition())->isOwnable()) {
                     int curr_position = currentPlayer->getPosition();
                     
-                    if (curr_position == 2 || curr_position == 17 || curr_position == 33) { // SLC 
-                        // 1% chance to get RUR;
-                        currentPlayer->chanceForRUR();
+                    if (curr_position == 2 || curr_position == 17 || curr_position == 33) {
+                        // 1% chance to get cup;
+                        currentPlayer->chanceForCup();
                         
                         int choice = currentPlayer->randNum(24);
 
@@ -146,7 +150,7 @@ int main() {
                         } else if (19 <= choice && choice <= 22) {
                             board.movePlayer(currentPlayer, 3);
                         } else if (choice == 23) {
-                            currentPlayer->sendToJail(board);
+                            currentPlayer->sendToTimsLine(board);
                         } else {
                             currentPlayer->changePosition(0);
                             board.getSquare(0)->addPlayer(currentPlayer->shared_from_this());
@@ -157,7 +161,7 @@ int main() {
                     } else if (curr_position == 4) { // TUITION
 
                     } else if (curr_position == 7 || curr_position == 36 || curr_position == 22) { // NEEDLES HALL
-                        currentPlayer->chanceForRUR();
+                        currentPlayer->chanceForCup();
                         
                         int choice = currentPlayer->randNum(18);
                         int amount_owned;
@@ -179,7 +183,7 @@ int main() {
                         }
 
                         if (amount_owned > 0) {
-                            std::cout << "Congratulations you recieve $" << amount_owned << "from the Needles Hall!" <<std::endl;
+                            std::cout << "Congratulations you receive $" << amount_owned << "from the Needles Hall!" <<std::endl;
                         } else {
                             std::cout << "You landed on the Needles hall have to pay $" << amount_owned << std::endl;
 
@@ -207,7 +211,8 @@ int main() {
     
                                     currentPlayer->changeBalance(amount_owned);
                                 } else {
-                                    std::cout << "BANKRUPCY" << std::endl; // TODO: Implement bankrupcy
+                                    currentPlayer->declareBankruptcy(nullptr, board, players);
+                                    std::cout << "You have declared bankrupcy!" << std::endl;
                                 }
                             }
                         }
@@ -220,7 +225,7 @@ int main() {
                         std::cout << "You are being attacked by a flock of nesting geese! RUN!" << std::endl;
 
                     } else if (curr_position == 30) { // GO TO TIMS
-                        currentPlayer->sendToJail(board);
+                        currentPlayer->sendToTimsLine(board);
                         break;
 
                     } else if (curr_position == 38) { // COOP FEE
@@ -250,101 +255,102 @@ int main() {
 
                                 currentPlayer->changeBalance(-150);
                             } else {
-                                std::cout << "BANKRUPCY" << std::endl; // TODO: Implement bankrupcy
+                                currentPlayer->declareBankruptcy(nullptr, board, players);
+                                std::cout << "You have declared bankrupcy!" << std::endl;
                             }
                         }
                     }
                 }
             }
 
-            if (currentPlayer->isInJail()) {
+            if (currentPlayer->isInTimsLine()) {
 
                 std::string roll;
-                std::cout << "You are in jail. You will attempt to roll doubles to get out of jail.";
+                std::cout << "You are in the DC Tims Line. You will attempt to roll doubles to get out of the DC Tims Line.";
 
-                bool success = currentPlayer->tryToLeaveJail();
+                bool success = currentPlayer->tryToLeaveTimsLine();
 
                 if (success) {
-                    currentPlayer->leaveJail();
+                    currentPlayer->leaveTimsLine();
 
                 } else {
-                    if (currentPlayer->getNumRoundsInJail() <= 1) { // starts at 0 and player can be in jail for 3 rounds (up to 2)
+                    if (currentPlayer->getTurnsInTimsLine() <= 1) { // starts at 0 and player can be in jail for 3 rounds (up to 2)
                         std::string answer;
     
-                        if (currentPlayer->getNumRUR() > 0) { // player has RUR
-                            std::cout << "Would you like to use one of your Roll Up the Rim Cups to leave jail? (Y/N): ";
+                        if (currentPlayer->getNumCups() > 0) { // player has RUR
+                            std::cout << "Would you like to use one of your Roll Up the Rim Cups to leave the DC Tims Line? (Y/N): ";
                             std::cin >> answer;
                             
                             if (answer == "Y") {
-                                currentPlayer->useRUR();
-                                currentPlayer->leaveJail();
-                                std::cout << "Transaction succesful, you are leaving jail.";
+                                currentPlayer->useCup();
+                                currentPlayer->leaveTimsLine();
+                                std::cout << "Transaction succesful, you are leaving the DC Tims Line.";
     
                             } else {
-                                std::cout << "Would you like to pay $50 to exit jail? (Y/N): ";
+                                std::cout << "Would you like to pay $50 to exit the DC Tims Line? (Y/N): ";
                                 std::cin >> answer;
     
                                 if (answer == "Y") {
                                     bool transaction_successful = currentPlayer->changeBalance(-50);
     
                                     if (transaction_successful) {
-                                        std::cout << "Transaction succesful, you are leaving jail.";
-                                        currentPlayer->leaveJail();
+                                        std::cout << "Transaction succesful, you are leaving the DC Tims Line.";
+                                        currentPlayer->leaveTimsLine();
                                     } else {
-                                        std::cout << "You don't have enough funds to leave jail";
-                                        currentPlayer->changeNumRoundsInJail();
+                                        std::cout << "You don't have enough funds to leave the DC Tims Line";
+                                        currentPlayer->incTurnsInTimsLine();
                                         break; // player will only be prompted to mortgage properties on the third round in jail
     
                                     }
                                 } else {
-                                    std::cout << "You will be spending another night in Jail!" << std::endl;
-                                    currentPlayer->changeNumRoundsInJail();
+                                    std::cout << "You will be spending another night in the DC Tims Line!" << std::endl;
+                                    currentPlayer->incTurnsInTimsLine();
                                     break;
                                 }
                             }
                         } else {
 
-                            std::cout << "Would you like to pay $50 to exit jail? (Y/N): ";
+                            std::cout << "Would you like to pay $50 to exit the DC Tims Line? (Y/N): ";
                                 std::cin >> answer;
     
                                 if (answer == "Y") {
                                     bool transaction_successful = currentPlayer->changeBalance(-50);
     
                                     if (transaction_successful) {
-                                        std::cout << "Transaction succesful, you are leaving jail.";
-                                        currentPlayer->leaveJail();
+                                        std::cout << "Transaction succesful, you are leaving the DC Tims Line.";
+                                        currentPlayer->leaveTimsLine();
                                     } else {
-                                        std::cout << "You don't have enough funds to leave jail";
-                                        currentPlayer->changeNumRoundsInJail();
+                                        std::cout << "You don't have enough funds to leave the DC Tims Line";
+                                        currentPlayer->incTurnsInTimsLine();
                                         break; // player will only be prompted to mortgage properties on the third round in jail
     
                                     }
                                 } else {
-                                    std::cout << "You will be spending another night in Jail!" << std::endl;
-                                    currentPlayer->changeNumRoundsInJail();
+                                    std::cout << "You will be spending another night in the DC Tims Line!" << std::endl;
+                                    currentPlayer->incTurnsInTimsLine();
                                     break;
                                 }
 
                         }
     
-                    } else if (currentPlayer->getNumRoundsInJail() == 2) {
+                    } else if (currentPlayer->getTurnsInTimsLine() == 2) {
                         std::string answer;
                         
-                        if (currentPlayer->getNumRUR() > 0) {
-                            std::cout << "This is your last chance to get out of jail. Would you like to use your Roll up The Rum Cup?\n"
+                        if (currentPlayer->getNumCups() > 0) {
+                            std::cout << "This is your last chance to get out of the DC Tims Line. Would you like to use your Roll up The Rum Cup?\n"
                             "Note that if you don't use it now and don't have enough funds to pay bail, you will have to declare bancrupcy. (Y/N): ";
                             std::cin >> answer;
                             
                             if (answer == "Y") {
-                                currentPlayer->useRUR();
-                                currentPlayer->leaveJail();
-                                std::cout << "Transaction succesful, you are leaving jail." << std::endl;
+                                currentPlayer->useCup();
+                                currentPlayer->leaveTimsLine();
+                                std::cout << "Transaction succesful, you are leaving the DC Tims Line." << std::endl;
                             } else {
                                 if (currentPlayer->getBalance() < 50) {
-                                    std::cout << "BANKRUPCY" << std::endl; // TODO: Implement bankrupcy
+                                    currentPlayer->declareBankruptcy(nullptr, board, players);
+                                    std::cout << "You have declared bankrupcy!" << std::endl;
                                 } else {
-                                    bool leave = currentPlayer->changeBalance(-50);
-                                    currentPlayer->leaveJail();
+                                    currentPlayer->leaveTimsLine();
                                 }
                             }
                         }
@@ -529,16 +535,16 @@ int main() {
                 } else if (command == "trade") {
                     std::string name;
                     std::string give;
-                    std::string recieve;
+                    std::string receive;
 
                     std::cin >> name;
                     std::cin >> give;
-                    std::cin >> recieve;
+                    std::cin >> receive;
 
                     bool giveInt = isInteger(give);
-                    bool recieveInt = isInteger(recieve);
+                    bool receiveInt = isInteger(receive);
 
-                    if (giveInt && recieveInt) { // if both give and recieve are integers, doesn't work
+                    if (giveInt && receiveInt) { // if both give and receive are integers, doesn't work
                         std::cout << "\n Unable to trade money for money, try again." << std::endl;
                     } else {
 
@@ -548,13 +554,13 @@ int main() {
                         std::cin >> decision;
         
                         if (decision == "Y") {
-                            if (!giveInt && !recieveInt) { // trade property for property                     
+                            if (!giveInt && !receiveInt) { // trade property for property                     
                                 Ownable* give_ptr = board.findOwnableByName(give);
-                                Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                                Ownable* receive_ptr = board.findOwnableByName(receive);
                                 std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
                                 
-                                if (give_ptr && recieve_ptr && player_trade) {
-                                    bool trade_success = currentPlayer->tradePforP(player_trade, give_ptr, recieve_ptr);
+                                if (give_ptr && receive_ptr && player_trade) {
+                                    bool trade_success = currentPlayer->tradePforP(player_trade, give_ptr, receive_ptr);
                                     if (trade_success) {
                                         std::cout << "Trade successful!" << std::endl;
                                     } else {
@@ -565,13 +571,13 @@ int main() {
                                 }
 
                                 
-                            } else if (!giveInt && recieveInt) { // trade property for money
-                                int money_recieve = std::stoi(recieve);
+                            } else if (!giveInt && receiveInt) { // trade property for money
+                                int money_receive = std::stoi(receive);
                                 Ownable* give_ptr = board.findOwnableByName(give);
                                 std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
                                 
                                 if (give_ptr && player_trade) {
-                                    bool trade_success = currentPlayer->tradePforC(player_trade, give_ptr, money_recieve);
+                                    bool trade_success = currentPlayer->tradePforC(player_trade, give_ptr, money_receive);
                                     if (trade_success) {
                                         std::cout << "Trade successful!" << std::endl;
                                     } else {
@@ -581,13 +587,13 @@ int main() {
                                     std::cout << "Trade failed. Try again." << std::endl;
                                 }
 
-                            } else if (giveInt && !recieveInt) { // trade money for property
+                            } else if (giveInt && !receiveInt) { // trade money for property
                                 int money_give = std::stoi(give);
-                                Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                                Ownable* receive_ptr = board.findOwnableByName(receive);
                                 std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
 
-                                if (recieve_ptr && player_trade) {
-                                    bool trade_success = currentPlayer->tradeCforP(player_trade, money_give, recieve_ptr);
+                                if (receive_ptr && player_trade) {
+                                    bool trade_success = currentPlayer->tradeCforP(player_trade, money_give, receive_ptr);
                                     if (trade_success) {
                                         std::cout << "Trade successful!" << std::endl;
                                     } else {
@@ -604,6 +610,21 @@ int main() {
                         }
                     }
                     
+                } else if (command == "save") {
+                    std::string filename;
+                    std::cin >> filename;
+                    std::ofstream out(filename);
+                    board.saveState(out);
+                } else if (command == "bankrupt") {
+                    currentPlayer->declareBankruptcyToBank(board, players);
+                
+                    board.removePlayer(currentPlayer);
+                    players.erase(players.begin() + currentPlayerIndex);
+                    if (players.size() == 1) {
+                        std::cout << players[0]->getName() << " wins the game!\n";
+                        break;
+                    }
+                    continue;
                 } else {
                     std::cout << "Unknown command. Try again." << std::endl;
                 }

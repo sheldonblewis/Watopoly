@@ -1,4 +1,5 @@
 #include <iostream>
+#include <map>
 #include "academicbuilding.h"
 #include "board.h"
 #include "gym.h"
@@ -51,8 +52,111 @@ Board::Board() {
     squares.emplace_back(std::make_unique<AcademicBuilding>("DC", 39, 400, "Math", 200, vector<int>{50, 200, 600, 1400, 1700, 2000}));
 }
 
+void Board::saveState(std::ostream& out) const {
+    out << players.size() << "\n";
+    for (auto& p : players) {
+        p->saveState(out);
+    }
+    for (auto& square : squares) {
+        if (auto ownable = dynamic_cast<Ownable*>(square.get())) {
+            out << ownable->getName() << " ";
+            if (ownable->getOwner()) {
+                out << ownable->getOwner()->getName();
+            } else {
+                out << "BANK";
+            }
+            int imp = ownable->isMortgaged() ? -1 : dynamic_cast<AcademicBuilding*>(ownable)->numImprovements();
+            out << " " << imp << "\n";
+        }
+    }
+}
+
+void Board::loadState(std::istream& in, std::vector<std::shared_ptr<Player>>& players) {
+    int numPlayers;
+    in >> numPlayers;
+
+    players.clear();
+    std::string name;
+    char symbol;
+    int cups, money, position;
+    int timsTurns = 0;
+
+    // Load players
+    for (int i = 0; i < numPlayers; ++i) {
+        in >> name >> symbol >> cups >> money >> position;
+
+        auto player = std::make_shared<Player>(name, symbol);
+        player->changeBalance(money-1500);
+        player->changePosition(position);
+        player->setCups(cups);
+
+        if (position == 10) {
+            // Check if in DC Tims Line
+            int lineFlag;
+            in >> lineFlag;
+            if (lineFlag == 1) {
+                in >> timsTurns;
+                player->sendToTimsLine();
+                player->setTurnsInTimsLine(timsTurns);
+            }
+        }
+
+        players.emplace_back(player);
+        addPlayer(player);
+        getSquare(position)->addPlayer(player);
+    }
+
+    // Load properties
+    std::string propertyName;
+    while (in >> propertyName) {
+        std::string ownerName;
+        int improvements;
+        in >> ownerName >> improvements;
+
+        Square* square = getSquareByName(propertyName);
+        Ownable* ownable = dynamic_cast<Ownable*>(square);
+
+        if (!ownable) {
+            std::cerr << "Error: Property " << propertyName << " is not ownable.\n";
+            continue;
+        }
+
+        if (ownerName != "BANK") {
+            for (auto& p : players) {
+                if (p->getName() == ownerName) {
+                    ownable->changeOwner(p.get());
+                    p->addProperty(ownable);
+                    break;
+                }
+            }
+        }
+
+        if (improvements == -1) {
+            ownable->mortgage();
+        } else if (improvements > 0) {
+            auto ac = dynamic_cast<AcademicBuilding*>(ownable);
+            if (ac) {
+                for (int i = 0; i < improvements; ++i) {
+                    ac->improve(ac->getOwner());
+                }
+            }
+        }
+    }
+
+    std::cout << "Game loaded successfully.\n";
+}
+
 void Board::addPlayer(std::shared_ptr<Player> player) {
     players.emplace_back(player);
+}
+
+void Board::removePlayer(std::shared_ptr<Player> player) {
+    for (size_t i = 0; i < players.size(); ++i) {
+        if (players[i] == player) {
+            players.erase(players.begin() + i);
+            return;
+        }
+    }
 }
 
 Square* Board::getSquare(int position) const {
@@ -279,4 +383,68 @@ void Board::movePlayer(shared_ptr<Player> player, int n) {
     getSquare(prevPos)->removePlayer(player->shared_from_this());
     getSquare(player->getPosition())->addPlayer(player->shared_from_this());
     drawBoard();
+}
+
+void Board::startAuction(std::shared_ptr<Ownable> property, std::vector<std::shared_ptr<Player>>& players) {
+    std::map<std::string, bool> activeBidders;
+    for (auto& player : players) {
+        if (player->isBankrupt()) continue;
+        activeBidders[player->getName()] = true;
+    }
+
+    int currentBid = 0;
+    std::shared_ptr<Player> highestBidder = nullptr;
+
+    while (true) {
+        for (auto& player : players) {
+            if (!activeBidders[player->getName()] || player->isBankrupt()) continue;
+
+            std::cout << player->getName() << "'s turn to bid (current bid: $" << currentBid << "). Enter bid or 'withdraw': ";
+            std::string input;
+            std::cin >> input;
+
+            if (input == "withdraw") {
+                activeBidders[player->getName()] = false;
+                continue;
+            }
+
+            int bid = std::stoi(input);
+            if (bid > currentBid && bid <= player->getBalance()) {
+                currentBid = bid;
+                highestBidder = player;
+            } else {
+                std::cout << "Invalid bid. Must be greater than $" << currentBid << " and <= your current money.\n";
+            }
+        }
+
+        // Check how many active bidders are left
+        int remaining = 0;
+        for (auto& [_, active] : activeBidders) if (active) ++remaining;
+        if (remaining <= 1) break;
+    }
+
+    if (highestBidder) {
+        std::cout << highestBidder->getName() << " wins the auction and buys " << property->getName() << " for $" << currentBid << "!\n";
+        highestBidder->changeBalance(-currentBid);
+        property->changeOwner(highestBidder.get());
+        highestBidder->addProperty(property.get());
+    } else {
+        std::cout << "No one bought " << property->getName() << ". It remains with the Bank.\n";
+    }
+}
+
+void Board::returnCups(int num) {
+    cupsAvailable += num;
+    if (cupsAvailable > 4) cupsAvailable = 4;
+}
+
+bool Board::canGiveCup() const {
+    return cupsAvailable > 0;
+}
+
+void Board::giveCup(std::shared_ptr<Player> p) {
+    if (cupsAvailable > 0) {
+        p->setCups(p->getNumCups() + 1);
+        --cupsAvailable;
+    }
 }
