@@ -27,6 +27,9 @@ public:
 
     // return pointer to player given their name
     std::shared_ptr<Player> findPlayerByName(std::string name);
+
+    // moves player by n squares
+    void movePlayer(std::shared_ptr<Player> player, int n);
     
     void loadState(std::istream& in, const std::vector<std::shared_ptr<Player>>& players);
     void saveState(std::ostream& out) const;

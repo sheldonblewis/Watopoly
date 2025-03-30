@@ -4,10 +4,9 @@ SOURCES = $(wildcard *.cc)
 OBJECTS = $(SOURCES:.cc=.o)
 DEPENDS = $(OBJECTS:.o=.d)
 EXEC = watopoly
-SHELL := cmd.exe
 
 $(EXEC): $(OBJECTS)
-	$(CXX) $(CXXFLAGS) -o $(EXEC).exe $(OBJECTS)
+	$(CXX) $(CXXFLAGS) -o $(EXEC) $(OBJECTS)
 
 %.o: %.cc
 	$(CXX) $(CXXFLAGS) -c $< -o $@
@@ -16,5 +15,4 @@ $(EXEC): $(OBJECTS)
 
 .PHONY: clean
 clean:
-	@if exist $(EXEC).exe del /f /q $(EXEC).exe
-	@for %%f in (*.o *.d) do del /f /q %%f
+	rm -f $(EXEC) $(OBJECTS) $(DEPENDS)

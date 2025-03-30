@@ -40,6 +40,12 @@ public:
     void addResidence(Residence* residence);
     int getBalance() const;
 
+    // returns number of roll up rims player has
+    int getNumRUR();
+
+    // called when player lands on NH or SLC for a 1% chance od RUR
+    void chanceForRUR();
+
     // return true if change balance was successfull 
     // false if the player doens't have enough money
     bool changeBalance(int amount);
@@ -83,7 +89,43 @@ public:
     // cash, returns true if successful, false otherwise
     bool tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* recieve);
 
-    void loadState(std::istream& in);
+    // when player doesn't have enough funds to pay for something this function
+    // gets called letting the user mortgage his ownables
+    bool mortgageProperties();
+
+    // calculates whether player can pay sum after mortgaging all properties
+    bool possibleToSurvive(int balance_owned);
+
+    // generates random number between 1 and n inclusive
+    int randNum(int n);
+
+    // moves the player n sqaures 
+    // n can be both negative and positive
+    int move(int n, Board& board);
+
+    // sends the player to jail
+    void sendToJail(Board& board);
+
+    // returns true if player is in jail false otherwise
+    bool isInJail();
+
+    // get the number of rounds the player has been in jail
+    int getNumRoundsInJail();
+
+    // sets inJail to false and num rounds in jail to 0
+    void leaveJail();
+
+    // decreses the number of roll up rims
+    void useRUR();
+
+    // increases num rounds in jail by 1
+    void changeNumRoundsInJail();
+
+    // returns true if player rolls doubles, false otherwise
+    bool tryToLeaveJail();
+
+    // changes position of player to n
+    void changePosition(int n);     void loadState(std::istream& in);
     void saveState(std::ostream& out) const;
 };
 

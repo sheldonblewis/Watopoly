@@ -97,6 +97,8 @@ void Player::displayAssets() const {
     }
 }
 
+int Player::getNumRUR() { return numRUR; };
+
 bool Player::changeBalance(int amount) {
     if (amount < 0) { // amount is negative so we are decreasing balance
         if (-amount > balance) {
@@ -298,4 +300,196 @@ bool Player::tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* 
     recieve->changeOwner(this);
 
     return true;
+}
+
+bool Player::mortgageProperties() {
+    // display players assets
+    std::cout << "These are your current assets :" << std::endl;
+    
+    displayAssets();
+
+    std::cout << "Type 'G' to mortgage a gym, 'R' for residence building, 'A' for academic building and 'ALL' for all buldings: ";
+    std::string command;
+    std::cin >> command;
+
+    if (command == "G") {
+        std::cout << "\nWhich gym would you like to mortgage: ";
+        std::string gym_name;
+        std::cin >> gym_name;
+
+        for (auto& gym : getGymsOwned()) {
+            if (gym_name == gym->getName()) {
+                gym->mortgage();
+                changeBalance(gym->getCost() / 2);
+                std::cout << "\nGym successfully mortgaged. New balance: " << getBalance() << std::endl;
+                return true;
+            }
+        }
+
+        std::cout << gym_name << " not owned by player, or doesn't exist. Try again." << std::endl;
+        return false;
+
+    } else if (command == "R") {
+        std::cout << "\nWhich residence would you like to mortgage: ";
+        std::string residence_name;
+        std::cin >> residence_name;
+
+        for (auto& residence : getResidencesOwned()) {
+            if (residence_name == residence->getName()) {
+                residence->mortgage();
+                changeBalance(residence->getCost() / 2);
+                std::cout << "Residence successfully mortgaged. New balance: " << getBalance() << std::endl;
+                return true;
+            }
+        }
+
+        std::cout << residence_name << " not owned by player, or doesn't exist. Try again." << std::endl;
+        return false;
+    } else if (command == "A") {
+        std::cout << "Which academic building would you like to mortgage: ";
+        std::string academic_name;
+        std::cin >> academic_name;
+
+        for (auto& ac : getACOwned()) {
+            if (academic_name == ac->getName()) {
+                ac->mortgage();
+                changeBalance(ac->getCost() / 2);
+                std::cout << "Academic bulding successfully mortgaged. New balance: " << getBalance() << std::endl;
+                return true;
+            }
+        }
+
+        std::cout << academic_name << " not owned by player, or doesn't exist. Try again." << std::endl;
+        return false;
+    } else if (command == "ALL") {
+        
+        for (auto& gym : getGymsOwned()) {
+            gym->mortgage();
+            changeBalance(gym->getCost() / 2);
+            std::cout << "Gym successfully mortgaged."  << std::endl;
+        }
+    
+        for (auto& residence : getResidencesOwned()) {
+            residence->mortgage();
+            changeBalance(residence->getCost() / 2);
+            std::cout << "Residence successfully mortgaged. " << std::endl;
+        }
+    
+        for (auto& ac : getACOwned()) {
+            if (ac->numImprovements() == 0) { // can only mortgage ac if no improvements
+                ac->mortgage();
+                changeBalance(ac->getCost() / 2);
+                std::cout << "Academic bulding successfully mortgaged." << std::endl;
+            }
+        }
+        std::cout << "New Balance: " << getBalance() << std::endl;
+        return true;
+    }
+}
+
+bool Player::possibleToSurvive(int balance_owned) {
+    int sum = 0;
+
+    sum += getBalance();
+
+    for (auto& gym : getGymsOwned()) {
+        sum += gym->getCost() / 2;
+    }
+
+    for (auto& residence : getResidencesOwned()) {
+        sum += residence->getCost() / 2;
+    }
+
+    for (auto& ac : getACOwned()) {
+        if (ac->numImprovements() == 0) { // can only mortgage ac if no improvements
+            sum += ac->getCost() / 2;
+        }
+    }
+
+    if (balance_owned >= sum) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+int Player::randNum(int n) {
+    return rand() % n + 1;
+}
+
+void Player::chanceForRUR() {
+    int num = randNum(100);
+    
+    if (numRUR <= 4) {
+        if (num == 69) {
+            numRUR++;
+            std::cout << "Congratulations you have recieved a Roll Up the Rim Cup!" << std::endl;
+        }
+    }
+}
+
+int Player::move(int n, Board& board) {
+    position += n;
+    if (position >= 40) {
+        position -= 40;
+        std::cout << name << " passed \"Collect OSAP\" and collected $200!" << std::endl;
+    } else if (position <= 0) {
+        position += 40;
+    }
+
+    std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
+
+    if (n > 0) {
+        return (position - n) % 40;
+    } else {
+        return (position + n) % 40;
+    }
+    
+}
+
+void Player::sendToJail(Board& board) {
+    std::cout << "Go to DC Tims Line! Do not pass go, do not collect $200.\n";
+    std::cout << "You are now in Jail." << std::endl;
+    numRoundsInJail = 0;
+    inJail = true;
+    board.getSquare(10)->addPlayer(shared_from_this());
+    board.getSquare(getPosition())->removePlayer(shared_from_this());
+    board.drawBoard();
+    position = 10;
+}
+
+bool Player::isInJail() { return inJail; }
+
+int Player::getNumRoundsInJail() { return numRoundsInJail; }
+
+void Player::leaveJail() {
+    inJail = false;
+    numRoundsInJail = 0;
+}
+
+void Player::changeNumRoundsInJail() {
+    numRoundsInJail += 1;
+}
+
+void Player::useRUR() {
+    if (numRUR > 0) {
+        numRUR -= 1;
+    }
+}
+
+bool Player::tryToLeaveJail() {
+    int die1 = rand() % 6 + 1;
+    int die2 = rand() % 6 + 1;
+
+    if (die1 == die2) {
+        std::cout << "\nYou have rolled double " << die1 << "!" << std::endl;
+        return true;
+    } else {
+        std::cout << "\nYou have rolled " << die1 << " and " << die2 <<std::endl;
+        return false;
+    }
+}
+
+void Player::changePosition(int n) {
+    position = n;
 }
