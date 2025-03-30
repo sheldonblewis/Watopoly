@@ -81,6 +81,13 @@ public:
     // cash, returns true if successful, false otherwise
     bool tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* recieve);
 
+    // when player doesn't have enough funds to pay for something this function
+    // gets called letting the user mortgage his ownables
+    bool mortgageProperties();
+
+    // calculates whether player can pay sum after mortgaging all properties
+    bool possibleToSurvive(int balance_owned);
+
 
 };
 

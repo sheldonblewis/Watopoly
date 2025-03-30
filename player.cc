@@ -279,3 +279,114 @@ bool Player::tradeCforP(std::shared_ptr<Player> other, int amountGive, Ownable* 
 
     return true;
 }
+
+bool Player::mortgageProperties() {
+    // display players assets
+    std::cout << "These are your current assets :" << std::endl;
+    
+    displayAssets();
+
+    std::cout << "Type 'G' to mortgage a gym, 'R' for residence building, 'A' for academic building and 'ALL' for all buldings: "
+    std::string command;
+    std::cin >> command;
+
+    if (command == "G") {
+        std::cout << "Which gym would you like to mortgage: ";
+        std::string gym_name;
+        std::cin >> gym_name;
+
+        for (auto& gym : getGymsOwned()) {
+            if (gym_name == gym->getName()) {
+                gym->mortgage;
+                changeBalance(gym->getCost() / 2);
+                std::cout << "Gym successfully mortgaged. New balance: " << getBalance() << std::endl;
+                return true;
+            }
+        }
+
+        std::cout << gym_name << " not owned by player, or doesn't exist. Try again." << std::endl;
+        return false;
+
+    } else if (command == "R") {
+        std::cout << "Which residence would you like to mortgage: ";
+        std::string residence_name;
+        std::cin >> residence_name;
+
+        for (auto& residence : getResidencesOwned()) {
+            if (residence_name == residence->getName()) {
+                residence->mortgage;
+                changeBalance(residence->getCost() / 2);
+                std::cout << "Residence successfully mortgaged. New balance: " << getBalance() << std::endl;
+                return true;
+            }
+        }
+
+        std::cout << residence_name << " not owned by player, or doesn't exist. Try again." << std::endl;
+        return false;
+    } else if (command == "A") {
+        std::cout << "Which academic building would you like to mortgage: ";
+        std::string academic_name;
+        std::cin >> academic_name;
+
+        for (auto& ac : getACOwned()) {
+            if (academic_name == ac->getName()) {
+                ac->mortgage;
+                changeBalance(ac->getCost() / 2);
+                std::cout << "Academic bulding successfully mortgaged. New balance: " << getBalance() << std::endl;
+                return true;
+            }
+        }
+
+        std::cout << academic_name << " not owned by player, or doesn't exist. Try again." << std::endl;
+        return false;
+    } else if (command == "ALL") {
+        
+        for (auto& gym : getGymsOwned()) {
+            gym->mortgage;
+            changeBalance(gym->getCost() / 2);
+            std::cout << "Gym successfully mortgaged."  << std::endl;
+        }
+    
+        for (auto& residence : getResidencesOwned()) {
+            residence->mortgage;
+            changeBalance(residence->getCost() / 2);
+            std::cout << "Residence successfully mortgaged. " << std::endl;
+        }
+    
+        for (auto& ac : getACOwned()) {
+            if (ac->getImpovements == 0) { // can only mortgage ac if no improvements
+                ac->mortgage;
+                changeBalance(ac->getCost() / 2);
+                std::cout << "Academic bulding successfully mortgaged." << std::endl;
+            }
+        }
+        std::cout << "New Balance: " << getBalance() << std::endl;
+        return true;
+    }
+}
+
+bool Player::possibleToSurvive(int balance_owned) {
+    int sum = 0;
+
+    sum += getBalance();
+
+    for (auto& gym : getGymsOwned()) {
+        sum += gym->getCost() / 2;
+    }
+
+    for (auto& residence : getResidencesOwned()) {
+        sum += residence->getCost() / 2;
+    }
+
+    for (auto& ac : getACOwned()) {
+        if (ac->getImpovements == 0) { // can only mortgage ac if no improvements
+            sum += ac->getCost / 2;
+        }
+    }
+
+    if (balance_owned >= sum) {
+        return false;
+    } else {
+        return true;
+    }
+}

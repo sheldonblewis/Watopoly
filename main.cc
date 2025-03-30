@@ -97,7 +97,7 @@ int main() {
             std::cout << "Enter \"help\" for a list of commands.\n";
             Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
             if (rolled) {
-                if (board.getSquare(currentPlayer->getPosition())->isOwnable()){
+                if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
                     if (!ownable->getOwner()) {
                         std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
                     } else if (ownable->getOwner() != currentPlayer.get()) {
@@ -128,6 +128,58 @@ int main() {
                     currentPlayer->sendToJail();
                     board.getSquare(30)->removePlayer(currentPlayer->shared_from_this());
                     board.getSquare(10)->addPlayer(currentPlayer->shared_from_this());
+                } else if (!board.getSquare(currentPlayer->getPosgetPosition())->isOwnable()) { // landed on a non-ownable square
+                    if (currentPlayer->getPosition() == 2) { // SLC 
+
+                    } else if (currentPlayer->getPosition() == 4) { // TUITION
+
+                    } else if (currentPlayer->getPosition() == 7) { // NEEDLES HALL
+
+                    } else if (currentPlayer->getPosition() == 10) { // DC TIMS LINE
+
+                    } else if (currentPlayer->getPosition() == 17) { // SLC
+
+                    } else if (currentPlayer->getPosition() == 20) { // GOOSE NESTING 
+
+                    } else if (currentPlayer->getPosition() == 22) { // NEEDLES HALL
+
+                    } else if (currentPlayer->getPosition() == 30) { // GO TO TIMS
+
+                    } else if (currentPlayer->getPosition() == 33) { // SLC
+
+                    } else if (currentPlayer->getPosition() == 36) { // NEEDLES HALL
+
+                    } else if (currentPlayer->getPosition() == 38) { // COOP FEE
+                        std::cout << "You have to pay the coop fee! ($150)" << std::endl;
+
+                        bool transaction_successful = currentPlayer->changeBalance(-150);
+
+                        if (transaction_successful) {
+                            std::cout << "You have successfully payed the Co-op fee" << std::endl;
+                        } else {
+                            std::cout << "You don't have enough funds to pay the Co-op fee!" << std::endl;
+
+                            bool possible_to_survive = currentPlayer->possibleToSurvive(150); // checks if the mortgage value of all of players buildings is > 150;
+
+                            if (possible_to_survive) {
+                                bool enough_to_pay = false;
+                                
+                                while (!enough_to_pay) {
+                                    currentPlayer->mortgageProperties();
+
+                                    if (currentPlayer->getBalance() >= 150) {
+                                        enough_to_pay = true;
+                                    } else {
+                                        std::cout << "Your current balance isn't enough to cover the Co-op fee. You need to mrtgage more properties." << std::endl;
+                                    }
+                                }
+
+                                currentPlayer->changeBalance(-150);
+                            } else {
+                                // still have to implement what happens to player when he bankrupts
+                            }
+                        }
+                    }
                 }
             }
 
@@ -226,9 +278,22 @@ int main() {
                     std::cout << "You don't own this property.\n";
                     continue;
                 }
-            
-                ownable->mortgage();
-                std::cout << property << " has been mortgaged.\n";
+
+                AcademicBuilding* ac = dynamic_cast<AcademicBuilding*>(ownable);
+
+                if (ac) {
+                    if (ac->getImpovements == 0) {
+                        ac->mortgage();
+                        currentPlayer->changeBalance(ac->getCost() / 2);
+                        std::cout << property << " has been mortgaged.\n";
+                    } else {
+                        std::cout << "Can't mortgage an Academic Building with improvements."
+                    }
+                } else {
+                    ownable->mortgage();
+                    currentPlayer->changeBalance(ac->getCost() / 2);
+                    std::cout << property << " has been mortgaged.\n";
+                }
             
             } else if (command == "unmortgage") {
                 std::string property;
@@ -244,9 +309,16 @@ int main() {
                     std::cout << "You don't own this property.\n";
                     continue;
                 }
+
+                if (currentPlayer->getBalance() < (ownable->getCost() / 2) * 0.1) {
+                    std::cout << "Not enough money to unmortgage property" << std::endl;
+                } else {
+                    ownable->unmortgage();
+                    currentPlayer->changeBalance(-((ownable->getCost() / 2) * 0.1));
+                    std::cout << property << " has been unmortgaged.\n";
+                }
             
-                ownable->unmortgage();
-                std::cout << property << " has been unmortgaged.\n";
+                
             } else if (command == "help") {
                 std::cout <<
                 "Available commands:\n"

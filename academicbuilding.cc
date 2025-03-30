@@ -64,3 +64,5 @@ bool AcademicBuilding::unmortgage() {
   return false;
 } // TODO IMPLEMENT 
 
+int AcademicBuilding::getImpovements() { return improvements; }
+
