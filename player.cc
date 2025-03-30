@@ -77,6 +77,21 @@ void Player::displayAssets() const {
     }
 }
 
+int Player::getNumRUR() { return numRUR };
+
+void chanceForRUR() {
+    int num = randNum(100);
+    
+    if (numRUR <= 4) {
+        if (num == 69) {
+            numRUR++;
+            std::cout << "Congratulations you have recieved a Roll Up the Rim Cup!" << std::endl;
+        }
+    }
+}
+
+
+
 bool Player::changeBalance(int amount) {
     if (amount < 0) { // amount is negative so we are decreasing balance
         if (-amount > balance) {
@@ -389,4 +404,31 @@ bool Player::possibleToSurvive(int balance_owned) {
     } else {
         return true;
     }
+}
+
+int Player::randNum(int n) {
+    return rand() % n + 1;
+}
+
+int Player::move(int n, Board& board) {
+    position += n;
+    if (position >= 40) {
+        position -= 40;
+        std::cout << name << " passed \"Collect OSAP\" and collected $200!" << std::endl;
+    } else if (position <= 0) {
+        position += 40;
+    }
+
+    std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
+
+    return (position - move) % 40;
+}
+
+void Player::sendToJail(Board& board) {
+    std::cout << "Go to DC Tims Line! Do not pass go, do not collect $200.\n";
+    numRoundsInJail = 0;
+    inJail = true;
+    board.getSquare(10)->addPlayer(shared_from_this());
+    board.getSquare(getPosition())->removePlayer(shared_from_this());
+    board.drawBoard()
 }

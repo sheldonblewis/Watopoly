@@ -123,33 +123,46 @@ int main() {
                     } else {
                         std::cout << "You own << " << board.getSquare(currentPlayer->getPosition())->getName() <<".\n";
                     }
-                } else if (currentPlayer->getPosition() == 30) {
-                    std::cout << "Go to DC Tims Line! Do not pass go, do not collect $200.\n";
-                    currentPlayer->sendToJail();
-                    board.getSquare(30)->removePlayer(currentPlayer->shared_from_this());
-                    board.getSquare(10)->addPlayer(currentPlayer->shared_from_this());
-                } else if (!board.getSquare(currentPlayer->getPosgetPosition())->isOwnable()) { // landed on a non-ownable square
-                    if (currentPlayer->getPosition() == 2) { // SLC 
+                } else if (!board.getSquare(currentPlayer->getPosition())->isOwnable()) { // landed on a non-ownable square
+                    int curr_position = currentPlayer->getPosition();
+                    
+                    if (curr_position == 2 || curr_position == 17 || curr_position == 33) { // SLC 
+                        // 1% chance to get RUR;
+                        currentPlayer->chanceForRUR();
+                        
+                        int choice = currentPlayer->randNum(24);
 
-                    } else if (currentPlayer->getPosition() == 4) { // TUITION
+                        if (1 <= choice && choice <= 3) {
+                            board.movePlayer(currentPlayer, -3);
+                        } else if (4 <= choice && choice <= 7) {
+                            board.movePlayer(currentPlayer, -2);
+                        } else if (8 <= choice && choice <= 11) {
+                            board.movePlayer(currentPlayer, -1);
+                        } else if (12 <= choice && choice <= 14) {
+                            board.movePlayer(currentPlayer, 1);
+                        } else if (15 <= choice && choice <= 18) {
+                            board.movePlayer(currentPlayer, 2);
+                        } else if (19 <= choice && choice <= 22) {
+                            board.movePlayer(currentPlayer, 3);
+                        } else if (choice == 23) {
+                            currentPlayer->sendToJail();
+                        } else {
 
-                    } else if (currentPlayer->getPosition() == 7) { // NEEDLES HALL
+                        }
 
-                    } else if (currentPlayer->getPosition() == 10) { // DC TIMS LINE
+                    } else if (curr_position == 4) { // TUITION
 
-                    } else if (currentPlayer->getPosition() == 17) { // SLC
+                    } else if (curr_position == 7 || curr_position == 36 || curr_position == 22) { // NEEDLES HALL
 
-                    } else if (currentPlayer->getPosition() == 20) { // GOOSE NESTING 
+                    } else if (curr_position == 10) { // DC TIMS LINE
 
-                    } else if (currentPlayer->getPosition() == 22) { // NEEDLES HALL
+                    } else if (curr_position == 20) { // GOOSE NESTING 
+                        std::cout << "You are being attacked by a flock of nesting geese! RUN!"
 
-                    } else if (currentPlayer->getPosition() == 30) { // GO TO TIMS
-
-                    } else if (currentPlayer->getPosition() == 33) { // SLC
-
-                    } else if (currentPlayer->getPosition() == 36) { // NEEDLES HALL
-
-                    } else if (currentPlayer->getPosition() == 38) { // COOP FEE
+                    } else if (curr_position == 30) { // GO TO TIMS
+                        currentPlayer->sendToJail();
+                        
+                    } else if (curr_position == 38) { // COOP FEE
                         std::cout << "You have to pay the coop fee! ($150)" << std::endl;
 
                         bool transaction_successful = currentPlayer->changeBalance(-150);

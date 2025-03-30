@@ -17,6 +17,8 @@ class Player : public std::enable_shared_from_this<Player> {
     int position = 0;
     int balance = 1500;
     bool inJail = false;
+    int numRUR = 0;
+    int numRoundsInJail = 0;
 
     std::vector<AcademicBuilding*> academicBuildingsOwned;
     std::vector<Gym*> gymsOwned;
@@ -37,6 +39,12 @@ public:
     void addGym(Gym* gym);
     void addResidence(Residence* residence);
     int getBalance() const;
+
+    // returns number of roll up rims player has
+    int getNumRUR();
+
+    // called when player lands on NH or SLC for a 1% chance od RUR
+    void chanceForRUR();
 
     // return true if change balance was successfull 
     // false if the player doens't have enough money
@@ -88,7 +96,15 @@ public:
     // calculates whether player can pay sum after mortgaging all properties
     bool possibleToSurvive(int balance_owned);
 
+    // generates random number between 1 and n inclusive
+    int randNum(int n);
 
+    // moves the player n sqaures 
+    // n can be both negative and positive
+    int move(int n, Board& board);
+
+    // sends the player to jail
+    void sendToJail();
 };
 
 #endif
