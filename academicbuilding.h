@@ -75,7 +75,4 @@ public:
     }
 };
 
-// returns the imporvement level of the ac
-int getImpovements()
-
 #endif

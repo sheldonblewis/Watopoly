@@ -99,7 +99,8 @@ int main() {
             if (rolled) {
                 if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
                     if (!ownable->getOwner()) {
-                        std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
+                        Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
+                        std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it for $"<< ownable->getCost() << ".\nYou currently have $" << currentPlayer->getBalance() << ".\n";
                     } else if (ownable->getOwner() != currentPlayer.get()) {
                         std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is owned by " << ownable->getOwner()->getName() << ".\n";
                         if (ownable->isMortgaged()) {
@@ -121,7 +122,7 @@ int main() {
                     } else if (currentPlayer->ownsAll(dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock())) {
                         std::cout << "You own all properties in the " << dynamic_cast<AcademicBuilding*>(ownable)->getMonopolyBlock() << " monopoly block! Enter \"improve " << ownable->getName() << " buy\" to buy an improvement.\nYou currently have $" << currentPlayer->getBalance() << ".\n";
                     } else {
-                        std::cout << "You own << " << board.getSquare(currentPlayer->getPosition())->getName() <<".\n";
+                        std::cout << "You own " << board.getSquare(currentPlayer->getPosition())->getName() <<".\n";
                     }
                 } else if (!board.getSquare(currentPlayer->getPosition())->isOwnable()) { // landed on a non-ownable square
                     int curr_position = currentPlayer->getPosition();
@@ -145,23 +146,83 @@ int main() {
                         } else if (19 <= choice && choice <= 22) {
                             board.movePlayer(currentPlayer, 3);
                         } else if (choice == 23) {
-                            currentPlayer->sendToJail();
+                            currentPlayer->sendToJail(board);
                         } else {
-
+                            currentPlayer->changePosition(0);
+                            board.getSquare(0)->addPlayer(currentPlayer->shared_from_this());
+                            board.getSquare(currentPlayer->getPosition())->removePlayer(currentPlayer->shared_from_this());
+                            board.drawBoard();
                         }
 
                     } else if (curr_position == 4) { // TUITION
 
                     } else if (curr_position == 7 || curr_position == 36 || curr_position == 22) { // NEEDLES HALL
+                        currentPlayer->chanceForRUR();
+                        
+                        int choice = currentPlayer->randNum(18);
+                        int amount_owned;
+
+                        if (choice == 1) {
+                            amount_owned = -200;
+                        } else if (2 <= choice && choice <= 3) {
+                            amount_owned = -100;
+                        } else if (4 <= choice && choice <= 6) {
+                            amount_owned = -50;
+                        } else if (7 <= choice && choice <= 12) {
+                            amount_owned = 25;
+                        } else if (13 <= choice && choice <= 15) {
+                            amount_owned = 50;
+                        } else if (16 <= choice && choice <= 17) {
+                            amount_owned = 100;
+                        } else {
+                            amount_owned = 200;
+                        }
+
+                        if (amount_owned > 0) {
+                            std::cout << "Congratulations you recieve $" << amount_owned << "from the Needles Hall!" <<std::endl;
+                        } else {
+                            std::cout << "You landed on the Needles hall have to pay $" << amount_owned << std::endl;
+
+                            bool transaction_successful = currentPlayer->changeBalance(amount_owned);
+    
+                            if (transaction_successful) {
+                                std::cout << "You have successfully payed the Needles Hall" << std::endl;
+                            } else {
+                                std::cout << "You don't have enough funds to pay the Needles Hall" << std::endl;
+    
+                                bool possible_to_survive = currentPlayer->possibleToSurvive(-amount_owned); // checks if the mortgage value of all of players buildings is > 150;
+    
+                                if (possible_to_survive) {
+                                    bool enough_to_pay = false;
+                                    
+                                    while (!enough_to_pay) {
+                                        currentPlayer->mortgageProperties();
+    
+                                        if (currentPlayer->getBalance() >= 150) {
+                                            enough_to_pay = true;
+                                        } else {
+                                            std::cout << "Your current balance isn't enough to cover the Needles Hall fee. You need to mrtgage more properties." << std::endl;
+                                        }
+                                    }
+    
+                                    currentPlayer->changeBalance(amount_owned);
+                                } else {
+                                    std::cout << "BANKRUPCY" << std::endl; // TODO: Implement bankrupcy
+                                }
+                            }
+                        }
+
 
                     } else if (curr_position == 10) { // DC TIMS LINE
+                        std::cout << "You are visiting the DC Tims Line." << std::endl;
 
                     } else if (curr_position == 20) { // GOOSE NESTING 
-                        std::cout << "You are being attacked by a flock of nesting geese! RUN!"
+                        std::cout << "You are being attacked by a flock of nesting geese! RUN!" << std::endl;
 
                     } else if (curr_position == 30) { // GO TO TIMS
-                        currentPlayer->sendToJail();
-                        
+                        currentPlayer->sendToJail(board);
+                        break;
+
                     } else if (curr_position == 38) { // COOP FEE
                         std::cout << "You have to pay the coop fee! ($150)" << std::endl;
 
@@ -189,246 +250,363 @@ int main() {
 
                                 currentPlayer->changeBalance(-150);
                             } else {
-                                // still have to implement what happens to player when he bankrupts
+                                std::cout << "BANKRUPCY" << std::endl; // TODO: Implement bankrupcy
                             }
                         }
                     }
                 }
             }
 
-            std::cout << "> ";
-            std::cin >> command;
+            if (currentPlayer->isInJail()) {
 
-            if (command == "roll") {
-                if (!rolled) {
-                    rolled = true;
-                    int prevPos = currentPlayer->roll(board);
-                    board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
-                    board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
-                    board.drawBoard();
+                std::string roll;
+                std::cout << "You are in jail. You will attempt to roll doubles to get out of jail.";
+
+                bool success = currentPlayer->tryToLeaveJail();
+
+                if (success) {
+                    currentPlayer->leaveJail();
+
                 } else {
-                    std::cout << "You have already rolled this turn.\n";
-                }
-            } else if (command == "buy") {
-                if (!rolled) {
-                    std::cout << "You must roll before you can buy.\n";
-                    continue;
-                } else if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
-                    if (ownable->getOwner()) {
-                        std::cout << "This property is already owned by " << ownable->getOwner()->getName() << ".\n";
-                    } else if (currentPlayer->changeBalance(-ownable->getCost())) {
-                        ownable->purchase(currentPlayer.get());
-                        std::cout << currentPlayer->getName() << " purchased " << ownable->getName() << " for $" << ownable->getCost() << ".\n";
-                        std::cout << "New balance: $" << currentPlayer->getBalance() << "\n";
-                    } else {
-                        std::cout << "Not enough funds to purchase this property.\n";
-                    }
-                } else {
-                    std::cout << "This property cannot be purchased.\n";
-                }
-            } else if (command == "next" && rolled) {
-                break;
-            } else if (command == "assets") {
-                currentPlayer->displayAssets();
-            } else if (command == "all") {
-                for (auto& p : players) {
-                    p->displayAssets();
-                }
-            } else if (command == "improve") {
-                std::string property, action;
-                std::cin >> property >> action;
-                
-                if (action == "buy" && !rolled) {
-                    std::cout << "You must roll before you can buy improvements.\n";
-                    continue;
-                } else {
-                    if (board.getSquareByName(property) == nullptr) {
-                        std::cout << "Property not found.\n";
-                        continue;
-                    } else { 
-                        auto square = board.getSquareByName(property);
-
-                        auto academic = dynamic_cast<AcademicBuilding*>(square);
-                        if (!academic) {
-                            std::cout << "Improvement only applies to academic buildings.\n";
-                            continue;
-                        }
-                    
-                        if (academic->getOwner() != currentPlayer.get()) {
-                            std::cout << "You don't own " << property << ".\n";
-                            continue;
-                        }
-
-                        if (!currentPlayer->ownsAll(academic->getMonopolyBlock())) {
-                            std::cout << "You must own all properties in the " << academic->getMonopolyBlock() << " monopoly block to buy improvements.\n";
-                        }
-
-                        if (academic->isMortgaged()) {
-                            std::cout << "You cannot improve a mortgaged property.\n";
-                            continue;
-                        }
-
-                        if (action == "buy") {
-                            academic->improve(currentPlayer.get());
-                        } else if (action == "sell") {
-                            academic->degrade(currentPlayer.get());
+                    if (currentPlayer->getNumRoundsInJail() <= 1) { // starts at 0 and player can be in jail for 3 rounds (up to 2)
+                        std::string answer;
+    
+                        if (currentPlayer->getNumRUR() > 0) { // player has RUR
+                            std::cout << "Would you like to use one of your Roll Up the Rim Cups to leave jail? (Y/N): ";
+                            std::cin >> answer;
+                            
+                            if (answer == "Y") {
+                                currentPlayer->useRUR();
+                                currentPlayer->leaveJail();
+                                std::cout << "Transaction succesful, you are leaving jail.";
+    
+                            } else {
+                                std::cout << "Would you like to pay $50 to exit jail? (Y/N): ";
+                                std::cin >> answer;
+    
+                                if (answer == "Y") {
+                                    bool transaction_successful = currentPlayer->changeBalance(-50);
+    
+                                    if (transaction_successful) {
+                                        std::cout << "Transaction succesful, you are leaving jail.";
+                                        currentPlayer->leaveJail();
+                                    } else {
+                                        std::cout << "You don't have enough funds to leave jail";
+                                        currentPlayer->changeNumRoundsInJail();
+                                        break; // player will only be prompted to mortgage properties on the third round in jail
+    
+                                    }
+                                } else {
+                                    std::cout << "You will be spending another night in Jail!" << std::endl;
+                                    currentPlayer->changeNumRoundsInJail();
+                                    break;
+                                }
+                            }
                         } else {
-                            std::cout << "Unknown action. Use 'buy' or 'sell'.\n";
+
+                            std::cout << "Would you like to pay $50 to exit jail? (Y/N): ";
+                                std::cin >> answer;
+    
+                                if (answer == "Y") {
+                                    bool transaction_successful = currentPlayer->changeBalance(-50);
+    
+                                    if (transaction_successful) {
+                                        std::cout << "Transaction succesful, you are leaving jail.";
+                                        currentPlayer->leaveJail();
+                                    } else {
+                                        std::cout << "You don't have enough funds to leave jail";
+                                        currentPlayer->changeNumRoundsInJail();
+                                        break; // player will only be prompted to mortgage properties on the third round in jail
+    
+                                    }
+                                } else {
+                                    std::cout << "You will be spending another night in Jail!" << std::endl;
+                                    currentPlayer->changeNumRoundsInJail();
+                                    break;
+                                }
+
+                        }
+    
+                    } else if (currentPlayer->getNumRoundsInJail() == 2) {
+                        std::string answer;
+                        
+                        if (currentPlayer->getNumRUR() > 0) {
+                            std::cout << "This is your last chance to get out of jail. Would you like to use your Roll up The Rum Cup?\n"
+                            "Note that if you don't use it now and don't have enough funds to pay bail, you will have to declare bancrupcy. (Y/N): ";
+                            std::cin >> answer;
+                            
+                            if (answer == "Y") {
+                                currentPlayer->useRUR();
+                                currentPlayer->leaveJail();
+                                std::cout << "Transaction succesful, you are leaving jail." << std::endl;
+                            } else {
+                                if (currentPlayer->getBalance() < 50) {
+                                    std::cout << "BANKRUPCY" << std::endl; // TODO: Implement bankrupcy
+                                } else {
+                                    bool leave = currentPlayer->changeBalance(-50);
+                                    currentPlayer->leaveJail();
+                                }
+                            }
                         }
                     }
                 }
-            } else if (command == "mortgage") {
-                std::string property;
-                std::cin >> property;
-            
-                auto ownable = dynamic_cast<Ownable*>(board.getSquareByName(property));
-                if (!ownable) {
-                    std::cout << "Not a mortgageable property.\n";
-                    continue;
-                }
-            
-                if (ownable->getOwner() != currentPlayer.get()) {
-                    std::cout << "You don't own this property.\n";
-                    continue;
-                }
 
-                AcademicBuilding* ac = dynamic_cast<AcademicBuilding*>(ownable);
 
-                if (ac) {
-                    if (ac->getImpovements == 0) {
-                        ac->mortgage();
+                
+
+            } else {
+
+                std::cout << "> ";
+                std::cin >> command;
+
+                if (command == "roll") {
+                    if (!rolled) {
+                        rolled = true;
+                        int prevPos = currentPlayer->roll(board);
+                        board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
+                        board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
+                        board.drawBoard();
+                    } else {
+                        std::cout << "You have already rolled this turn.\n";
+                    }
+                } else if (command == "move") {
+                    std::string n;
+
+                    std::cin >> n;
+                    
+                    if (isInteger(n)) {
+                        int n_int = std::stoi(n);
+                        int prevPos = currentPlayer->move(n_int, board);
+                        board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
+                        board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
+                        board.drawBoard();
+                        std::cout << "Moved to " << board.getSquare(currentPlayer->getPosition())->getName() << std::endl;
+                        rolled = true;
+                    } else {
+                        std::cout << n << " is not an integer.";
+                    }
+
+                } else if (command == "buy") {
+                    if (!rolled) {
+                        std::cout << "You must roll before you can buy.\n";
+                        continue;
+                    } else if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
+                        if (ownable->getOwner()) {
+                            std::cout << "This property is already owned by " << ownable->getOwner()->getName() << ".\n";
+                        } else if (currentPlayer->changeBalance(-ownable->getCost())) {
+                            ownable->purchase(currentPlayer.get());
+                            std::cout << currentPlayer->getName() << " purchased " << ownable->getName() << " for $" << ownable->getCost() << ".\n";
+                            std::cout << "New balance: $" << currentPlayer->getBalance() << "\n";
+                        } else {
+                            std::cout << "Not enough funds to purchase this property.\n";
+                        }
+                    } else {
+                        std::cout << "This property cannot be purchased.\n";
+                    }
+                } else if (command == "next" && rolled) {
+                    break;
+                } else if (command == "assets") {
+                    currentPlayer->displayAssets();
+                } else if (command == "all") {
+                    for (auto& p : players) {
+                        p->displayAssets();
+                    }
+                } else if (command == "improve") {
+                    std::string property, action;
+                    std::cin >> property >> action;
+                    
+                    if (action == "buy" && !rolled) {
+                        std::cout << "You must roll before you can buy improvements.\n";
+                        continue;
+                    } else {
+                        if (board.getSquareByName(property) == nullptr) {
+                            std::cout << "Property not found.\n";
+                            continue;
+                        } else { 
+                            auto square = board.getSquareByName(property);
+
+                            auto academic = dynamic_cast<AcademicBuilding*>(square);
+                            if (!academic) {
+                                std::cout << "Improvement only applies to academic buildings.\n";
+                                continue;
+                            }
+                        
+                            if (academic->getOwner() != currentPlayer.get()) {
+                                std::cout << "You don't own " << property << ".\n";
+                                continue;
+                            }
+
+                            if (!currentPlayer->ownsAll(academic->getMonopolyBlock())) {
+                                std::cout << "You must own all properties in the " << academic->getMonopolyBlock() << " monopoly block to buy improvements.\n";
+                            }
+
+                            if (academic->isMortgaged()) {
+                                std::cout << "You cannot improve a mortgaged property.\n";
+                                continue;
+                            }
+
+                            if (action == "buy") {
+                                academic->improve(currentPlayer.get());
+                            } else if (action == "sell") {
+                                academic->degrade(currentPlayer.get());
+                            } else {
+                                std::cout << "Unknown action. Use 'buy' or 'sell'.\n";
+                            }
+                        }
+                    }
+                } else if (command == "mortgage") {
+                    std::string property;
+                    std::cin >> property;
+                
+                    auto ownable = dynamic_cast<Ownable*>(board.getSquareByName(property));
+                    if (!ownable) {
+                        std::cout << "Not a mortgageable property.\n";
+                        continue;
+                    }
+                
+                    if (ownable->getOwner() != currentPlayer.get()) {
+                        std::cout << "You don't own this property.\n";
+                        continue;
+                    }
+
+                    AcademicBuilding* ac = dynamic_cast<AcademicBuilding*>(ownable);
+
+                    if (ac) {
+                        if (ac->numImprovements() == 0) {
+                            ac->mortgage();
+                            currentPlayer->changeBalance(ac->getCost() / 2);
+                            std::cout << property << " has been mortgaged.\n";
+                        } else {
+                            std::cout << "Can't mortgage an Academic Building with improvements." << std::endl;
+                        }
+                    } else {
+                        ownable->mortgage();
                         currentPlayer->changeBalance(ac->getCost() / 2);
                         std::cout << property << " has been mortgaged.\n";
-                    } else {
-                        std::cout << "Can't mortgage an Academic Building with improvements."
                     }
-                } else {
-                    ownable->mortgage();
-                    currentPlayer->changeBalance(ac->getCost() / 2);
-                    std::cout << property << " has been mortgaged.\n";
-                }
-            
-            } else if (command == "unmortgage") {
-                std::string property;
-                std::cin >> property;
-            
-                auto ownable = dynamic_cast<Ownable*>(board.getSquareByName(property));
-                if (!ownable) {
-                    std::cout << "Not a mortgageable property.\n";
-                    continue;
-                }
-            
-                if (ownable->getOwner() != currentPlayer.get()) {
-                    std::cout << "You don't own this property.\n";
-                    continue;
-                }
-
-                if (currentPlayer->getBalance() < (ownable->getCost() / 2) * 0.1) {
-                    std::cout << "Not enough money to unmortgage property" << std::endl;
-                } else {
-                    ownable->unmortgage();
-                    currentPlayer->changeBalance(-((ownable->getCost() / 2) * 0.1));
-                    std::cout << property << " has been unmortgaged.\n";
-                }
-            
                 
-            } else if (command == "help") {
-                std::cout <<
-                "Available commands:\n"
-                "• roll                        - Roll two dice and move forward.\n"
-                "• next                        - End your turn and pass to the next player.\n"
-                "• trade <name> <give> <receive> - Propose a trade with another player.\n"
-                "    (give/receive can be a property or an amount of money)\n"
-                "• improve <property> buy/sell - Buy or sell an improvement on a property.\n"
-                "• mortgage <property>         - Mortgage a property.\n"
-                "• unmortgage <property>       - Unmortgage a property.\n"
-                "• bankrupt                    - Declare bankruptcy (only when required).\n"
-                "• assets                      - Show current player’s assets.\n"
-                "• all                         - Show all players’ assets.\n"
-                "• save <filename>             - Save the current game state.\n"
-                "• help                        - Show this help message.\n\n"
-                "Note: Properties with improvements cannot be traded or mortgaged.\n"
-                << std::endl;
-            } else if (command == "trade") {
-                std::string name;
-                std::string give;
-                std::string recieve;
-
-                std::cin >> name;
-                std::cin >> give;
-                std::cin >> recieve;
-
-                bool giveInt = isInteger(give);
-                bool recieveInt = isInteger(recieve);
-
-                if (giveInt && recieveInt) { // if both give and recieve are integers, doesn't work
-                    std::cout << "\n Unable to trade money for money, try again." << std::endl;
-                } else {
-
-                    std::cout << "\nDoes " << name << " accept this trade? (Y/N): ";
-                    std::string decision;
-    
-                    std::cin >> decision;
-    
-                    if (decision == "Y") {
-                        if (!giveInt && !recieveInt) { // trade property for property                     
-                            Ownable* give_ptr = board.findOwnableByName(give);
-                            Ownable* recieve_ptr = board.findOwnableByName(recieve);
-                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
-                            
-                            if (give_ptr && recieve_ptr && player_trade) {
-                                bool trade_success = currentPlayer->tradePforP(player_trade, give_ptr, recieve_ptr);
-                                if (trade_success) {
-                                    std::cout << "Trade successful!" << std::endl;
-                                } else {
-                                    std::cout << "Trade failed. Try again." << std::endl;
-                                }
-                            } else {
-                                std::cout << "Player or one of the squares do not exist" << std::endl;
-                            }
-
-                            
-                        } else if (!giveInt && recieveInt) { // trade property for money
-                            int money_recieve = std::stoi(recieve);
-                            Ownable* give_ptr = board.findOwnableByName(give);
-                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
-                            
-                            if (give_ptr && player_trade) {
-                                bool trade_success = currentPlayer->tradePforC(player_trade, give_ptr, money_recieve);
-                                if (trade_success) {
-                                    std::cout << "Trade successful!" << std::endl;
-                                } else {
-                                    std::cout << "Trade failed. Try again." << std::endl;
-                                }
-                            } else {
-                                std::cout << "Trade failed. Try again." << std::endl;
-                            }
-
-                        } else if (giveInt && !recieveInt) { // trade money for property
-                            int money_give = std::stoi(give);
-                            Ownable* recieve_ptr = board.findOwnableByName(recieve);
-                            std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
-
-                            if (recieve_ptr && player_trade) {
-                                bool trade_success = currentPlayer->tradeCforP(player_trade, money_give, recieve_ptr);
-                                if (trade_success) {
-                                    std::cout << "Trade successful!" << std::endl;
-                                } else {
-                                    std::cout << "Trade failed. Try again." << std::endl;
-                                }
-                            } else {
-                                std::cout << "Trade failed. Try again." << std::endl;
-                            }
-                        } 
-                    } else if (decision == "N") {
-                        std::cout << name << "declines the trade" << std::endl;
-                    } else {
-                        std::cout << "Invalid answer, try again" << std::endl;
+                } else if (command == "unmortgage") {
+                    std::string property;
+                    std::cin >> property;
+                
+                    auto ownable = dynamic_cast<Ownable*>(board.getSquareByName(property));
+                    if (!ownable) {
+                        std::cout << "Not a mortgageable property.\n";
+                        continue;
                     }
-                }
                 
-            } else {
-                std::cout << "Unknown command. Try again." << std::endl;
+                    if (ownable->getOwner() != currentPlayer.get()) {
+                        std::cout << "You don't own this property.\n";
+                        continue;
+                    }
+
+                    if (currentPlayer->getBalance() < (ownable->getCost() / 2) * 0.1) {
+                        std::cout << "Not enough money to unmortgage property" << std::endl;
+                    } else {
+                        ownable->unmortgage();
+                        currentPlayer->changeBalance(-((ownable->getCost() / 2) * 0.1));
+                        std::cout << property << " has been unmortgaged.\n";
+                    }
+                
+                    
+                } else if (command == "help") {
+                    std::cout <<
+                    "Available commands:\n"
+                    "• roll                        - Roll two dice and move forward.\n"
+                    "• next                        - End your turn and pass to the next player.\n"
+                    "• trade <name> <give> <receive> - Propose a trade with another player.\n"
+                    "    (give/receive can be a property or an amount of money)\n"
+                    "• improve <property> buy/sell - Buy or sell an improvement on a property.\n"
+                    "• mortgage <property>         - Mortgage a property.\n"
+                    "• unmortgage <property>       - Unmortgage a property.\n"
+                    "• bankrupt                    - Declare bankruptcy (only when required).\n"
+                    "• assets                      - Show current player’s assets.\n"
+                    "• all                         - Show all players’ assets.\n"
+                    "• save <filename>             - Save the current game state.\n"
+                    "• help                        - Show this help message.\n\n"
+                    "Note: Properties with improvements cannot be traded or mortgaged.\n"
+                    << std::endl;
+                } else if (command == "trade") {
+                    std::string name;
+                    std::string give;
+                    std::string recieve;
+
+                    std::cin >> name;
+                    std::cin >> give;
+                    std::cin >> recieve;
+
+                    bool giveInt = isInteger(give);
+                    bool recieveInt = isInteger(recieve);
+
+                    if (giveInt && recieveInt) { // if both give and recieve are integers, doesn't work
+                        std::cout << "\n Unable to trade money for money, try again." << std::endl;
+                    } else {
+
+                        std::cout << "\nDoes " << name << " accept this trade? (Y/N): ";
+                        std::string decision;
+        
+                        std::cin >> decision;
+        
+                        if (decision == "Y") {
+                            if (!giveInt && !recieveInt) { // trade property for property                     
+                                Ownable* give_ptr = board.findOwnableByName(give);
+                                Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                                std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+                                
+                                if (give_ptr && recieve_ptr && player_trade) {
+                                    bool trade_success = currentPlayer->tradePforP(player_trade, give_ptr, recieve_ptr);
+                                    if (trade_success) {
+                                        std::cout << "Trade successful!" << std::endl;
+                                    } else {
+                                        std::cout << "Trade failed. Try again." << std::endl;
+                                    }
+                                } else {
+                                    std::cout << "Player or one of the squares do not exist" << std::endl;
+                                }
+
+                                
+                            } else if (!giveInt && recieveInt) { // trade property for money
+                                int money_recieve = std::stoi(recieve);
+                                Ownable* give_ptr = board.findOwnableByName(give);
+                                std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+                                
+                                if (give_ptr && player_trade) {
+                                    bool trade_success = currentPlayer->tradePforC(player_trade, give_ptr, money_recieve);
+                                    if (trade_success) {
+                                        std::cout << "Trade successful!" << std::endl;
+                                    } else {
+                                        std::cout << "Trade failed. Try again." << std::endl;
+                                    }
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+
+                            } else if (giveInt && !recieveInt) { // trade money for property
+                                int money_give = std::stoi(give);
+                                Ownable* recieve_ptr = board.findOwnableByName(recieve);
+                                std::shared_ptr<Player> player_trade = board.findPlayerByName(name);
+
+                                if (recieve_ptr && player_trade) {
+                                    bool trade_success = currentPlayer->tradeCforP(player_trade, money_give, recieve_ptr);
+                                    if (trade_success) {
+                                        std::cout << "Trade successful!" << std::endl;
+                                    } else {
+                                        std::cout << "Trade failed. Try again." << std::endl;
+                                    }
+                                } else {
+                                    std::cout << "Trade failed. Try again." << std::endl;
+                                }
+                            } 
+                        } else if (decision == "N") {
+                            std::cout << name << "declines the trade" << std::endl;
+                        } else {
+                            std::cout << "Invalid answer, try again" << std::endl;
+                        }
+                    }
+                    
+                } else {
+                    std::cout << "Unknown command. Try again." << std::endl;
+                }
             }
         }
         

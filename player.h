@@ -64,10 +64,6 @@ public:
 
     bool ownsAll(const std::string& monopolyBlock) const;
 
-    void sendToJail() {
-        position = 10;
-        inJail = true;
-    }
     // removes the property from the correcponding vector in the
     // players attribute
     // IMPORTANT: ASSUMES PLAYER OWNS PROPERTY
@@ -104,7 +100,28 @@ public:
     int move(int n, Board& board);
 
     // sends the player to jail
-    void sendToJail();
+    void sendToJail(Board& board);
+
+    // returns true if player is in jail false otherwise
+    bool isInJail();
+
+    // get the number of rounds the player has been in jail
+    int getNumRoundsInJail();
+
+    // sets inJail to false and num rounds in jail to 0
+    void leaveJail();
+
+    // decreses the number of roll up rims
+    void useRUR();
+
+    // increases num rounds in jail by 1
+    void changeNumRoundsInJail();
+
+    // returns true if player rolls doubles, false otherwise
+    bool tryToLeaveJail();
+
+    // changes position of player to n
+    void changePosition(int n); 
 };
 
 #endif

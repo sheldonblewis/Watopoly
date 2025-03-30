@@ -275,7 +275,7 @@ std::shared_ptr<Player> Board::findPlayerByName(std::string name) {
 }
 
 void Board::movePlayer(shared_ptr<Player> player, int n) {
-    int prevPos = player->move(n, board);
+    int prevPos = player->move(n, *this);
     getSquare(prevPos)->removePlayer(player->shared_from_this());
     getSquare(player->getPosition())->addPlayer(player->shared_from_this());
     drawBoard();

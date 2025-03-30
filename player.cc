@@ -77,20 +77,7 @@ void Player::displayAssets() const {
     }
 }
 
-int Player::getNumRUR() { return numRUR };
-
-void chanceForRUR() {
-    int num = randNum(100);
-    
-    if (numRUR <= 4) {
-        if (num == 69) {
-            numRUR++;
-            std::cout << "Congratulations you have recieved a Roll Up the Rim Cup!" << std::endl;
-        }
-    }
-}
-
-
+int Player::getNumRUR() { return numRUR; };
 
 bool Player::changeBalance(int amount) {
     if (amount < 0) { // amount is negative so we are decreasing balance
@@ -301,20 +288,20 @@ bool Player::mortgageProperties() {
     
     displayAssets();
 
-    std::cout << "Type 'G' to mortgage a gym, 'R' for residence building, 'A' for academic building and 'ALL' for all buldings: "
+    std::cout << "Type 'G' to mortgage a gym, 'R' for residence building, 'A' for academic building and 'ALL' for all buldings: ";
     std::string command;
     std::cin >> command;
 
     if (command == "G") {
-        std::cout << "Which gym would you like to mortgage: ";
+        std::cout << "\nWhich gym would you like to mortgage: ";
         std::string gym_name;
         std::cin >> gym_name;
 
         for (auto& gym : getGymsOwned()) {
             if (gym_name == gym->getName()) {
-                gym->mortgage;
+                gym->mortgage();
                 changeBalance(gym->getCost() / 2);
-                std::cout << "Gym successfully mortgaged. New balance: " << getBalance() << std::endl;
+                std::cout << "\nGym successfully mortgaged. New balance: " << getBalance() << std::endl;
                 return true;
             }
         }
@@ -323,13 +310,13 @@ bool Player::mortgageProperties() {
         return false;
 
     } else if (command == "R") {
-        std::cout << "Which residence would you like to mortgage: ";
+        std::cout << "\nWhich residence would you like to mortgage: ";
         std::string residence_name;
         std::cin >> residence_name;
 
         for (auto& residence : getResidencesOwned()) {
             if (residence_name == residence->getName()) {
-                residence->mortgage;
+                residence->mortgage();
                 changeBalance(residence->getCost() / 2);
                 std::cout << "Residence successfully mortgaged. New balance: " << getBalance() << std::endl;
                 return true;
@@ -345,7 +332,7 @@ bool Player::mortgageProperties() {
 
         for (auto& ac : getACOwned()) {
             if (academic_name == ac->getName()) {
-                ac->mortgage;
+                ac->mortgage();
                 changeBalance(ac->getCost() / 2);
                 std::cout << "Academic bulding successfully mortgaged. New balance: " << getBalance() << std::endl;
                 return true;
@@ -357,20 +344,20 @@ bool Player::mortgageProperties() {
     } else if (command == "ALL") {
         
         for (auto& gym : getGymsOwned()) {
-            gym->mortgage;
+            gym->mortgage();
             changeBalance(gym->getCost() / 2);
             std::cout << "Gym successfully mortgaged."  << std::endl;
         }
     
         for (auto& residence : getResidencesOwned()) {
-            residence->mortgage;
+            residence->mortgage();
             changeBalance(residence->getCost() / 2);
             std::cout << "Residence successfully mortgaged. " << std::endl;
         }
     
         for (auto& ac : getACOwned()) {
-            if (ac->getImpovements == 0) { // can only mortgage ac if no improvements
-                ac->mortgage;
+            if (ac->numImprovements() == 0) { // can only mortgage ac if no improvements
+                ac->mortgage();
                 changeBalance(ac->getCost() / 2);
                 std::cout << "Academic bulding successfully mortgaged." << std::endl;
             }
@@ -394,8 +381,8 @@ bool Player::possibleToSurvive(int balance_owned) {
     }
 
     for (auto& ac : getACOwned()) {
-        if (ac->getImpovements == 0) { // can only mortgage ac if no improvements
-            sum += ac->getCost / 2;
+        if (ac->numImprovements() == 0) { // can only mortgage ac if no improvements
+            sum += ac->getCost() / 2;
         }
     }
 
@@ -410,6 +397,17 @@ int Player::randNum(int n) {
     return rand() % n + 1;
 }
 
+void Player::chanceForRUR() {
+    int num = randNum(100);
+    
+    if (numRUR <= 4) {
+        if (num == 69) {
+            numRUR++;
+            std::cout << "Congratulations you have recieved a Roll Up the Rim Cup!" << std::endl;
+        }
+    }
+}
+
 int Player::move(int n, Board& board) {
     position += n;
     if (position >= 40) {
@@ -421,14 +419,57 @@ int Player::move(int n, Board& board) {
 
     std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
 
-    return (position - move) % 40;
+    if (n > 0) {
+        return (position - n) % 40;
+    } else {
+        return (position + n) % 40;
+    }
+    
 }
 
 void Player::sendToJail(Board& board) {
     std::cout << "Go to DC Tims Line! Do not pass go, do not collect $200.\n";
+    std::cout << "You are now in Jail." << std::endl;
     numRoundsInJail = 0;
     inJail = true;
     board.getSquare(10)->addPlayer(shared_from_this());
     board.getSquare(getPosition())->removePlayer(shared_from_this());
-    board.drawBoard()
+    board.drawBoard();
+    position = 10;
+}
+
+bool Player::isInJail() { return inJail; }
+
+int Player::getNumRoundsInJail() { return numRoundsInJail; }
+
+void Player::leaveJail() {
+    inJail = false;
+    numRoundsInJail = 0;
+}
+
+void Player::changeNumRoundsInJail() {
+    numRoundsInJail += 1;
+}
+
+void Player::useRUR() {
+    if (numRUR > 0) {
+        numRUR -= 1;
+    }
+}
+
+bool Player::tryToLeaveJail() {
+    int die1 = rand() % 6 + 1;
+    int die2 = rand() % 6 + 1;
+
+    if (die1 == die2) {
+        std::cout << "\nYou have rolled double " << die1 << "!" << std::endl;
+        return true;
+    } else {
+        std::cout << "\nYou have rolled " << die1 << " and " << die2 <<std::endl;
+        return false;
+    }
+}
+
+void Player::changePosition(int n) {
+    position = n;
 }
