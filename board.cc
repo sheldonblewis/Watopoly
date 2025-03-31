@@ -65,7 +65,13 @@ void Board::saveState(std::ostream& out) const {
             } else {
                 out << "BANK";
             }
-            int imp = ownable->isMortgaged() ? -1 : dynamic_cast<AcademicBuilding*>(ownable)->numImprovements();
+            int imp;
+            if (ownable->isMortgaged()) {
+                imp = -1;
+            } else {
+                auto academicBuilding = dynamic_cast<AcademicBuilding*>(ownable);
+                imp = academicBuilding ? academicBuilding->numImprovements() : 0; 
+            }
             out << " " << imp << "\n";
         }
     }

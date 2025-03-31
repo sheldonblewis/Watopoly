@@ -652,6 +652,11 @@ int main(int argc, char* argv[]) {
                     std::cin >> filename;
                     std::ofstream out(filename);
                     board.saveState(out);
+                } else if (command == "load") {
+                    std::string filename;
+                    std::cin >> filename;
+                    std::ifstream in(filename);
+                    board.loadState(in, players);
                 } else if (command == "bankrupt") {
                     currentPlayer->declareBankruptcyToBank(board, players);
                 
