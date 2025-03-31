@@ -99,7 +99,11 @@ char Player::getSymbol() const {
 
 void Player::displayAssets() const {
     std::cout << "Player: " << name << " ($" << balance << ")" << std::endl;
+    
     for (const auto& ac : academicBuildingsOwned) {
+        if (!ac) {
+            continue;
+        }
         std::cout << "  Academic Building: " << ac->getName() << " ";
         if (ac->isMortgaged()) {
             std::cout << "(mortgaged)";
@@ -109,14 +113,22 @@ void Player::displayAssets() const {
         }
         std::cout << std::endl;
     }
+    
     for (const auto& res : residencesOwned) {
+        if (!res) {
+            continue;
+        }
         std::cout << "  Residence: " << res->getName();
         if (res->isMortgaged()) {
             std::cout << " (mortgaged)";
         }
         std::cout << std::endl;
     }
+    
     for (const auto& gym : gymsOwned) {
+        if (!gym) {
+            continue;
+        }
         std::cout << "  Gym: " << gym->getName();
         if (gym->isMortgaged()) {
             std::cout << " (mortgaged)";

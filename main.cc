@@ -369,7 +369,7 @@ int main(int argc, char* argv[]) {
             if (currentPlayer->isInTimsLine()) {
 
                 std::string roll;
-                std::cout << "You are in the DC Tims Line. You will attempt to roll doubles to get out of the DC Tims Line.";
+                std::cout << "You are in the DC Tims Line. You will attempt to roll doubles to get out of the DC Tims Line." << std::endl;
 
                 bool success = currentPlayer->tryToLeaveTimsLine();
 
@@ -387,7 +387,7 @@ int main(int argc, char* argv[]) {
                             if (answer == "Y" || answer == "y") {
                                 currentPlayer->useCup();
                                 currentPlayer->leaveTimsLine();
-                                std::cout << "Transaction succesful, you are leaving the DC Tims Line.";
+                                std::cout << "Transaction succesful, you are leaving the DC Tims Line." << std::endl;
     
                             } else {
                                 std::cout << "Would you like to pay $50 to exit the DC Tims Line? (Y/N): ";
@@ -397,10 +397,10 @@ int main(int argc, char* argv[]) {
                                     bool transaction_successful = currentPlayer->changeBalance(-50);
     
                                     if (transaction_successful) {
-                                        std::cout << "Transaction succesful, you are leaving the DC Tims Line.";
+                                        std::cout << "Transaction succesful, you are leaving the DC Tims Line." << std::endl;
                                         currentPlayer->leaveTimsLine();
                                     } else {
-                                        std::cout << "You don't have enough funds to leave the DC Tims Line";
+                                        std::cout << "You don't have enough funds to leave the DC Tims Line" << std::endl;
                                         currentPlayer->incTurnsInTimsLine();
                                         break; // player will only be prompted to mortgage properties on the third round in jail
     
