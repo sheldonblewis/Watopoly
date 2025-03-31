@@ -39,10 +39,10 @@ public:
     }
 
     // attempts to mortgage the academic building, returns true if suceeded, false otherwise (should print out why it failed)
-    bool mortgage();
+    void mortgage();
 
     // attempts to unmortgage the academic building, returns true if suceeded, false otherwise (should print out why it failed)
-    bool unmortgage();
+    void unmortgage();
 
     bool isOwnable() const;
 

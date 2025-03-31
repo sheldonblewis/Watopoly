@@ -6,6 +6,7 @@ Ownable::Ownable(std::string name, int position, int cost)
 
 void Ownable::purchase(Player* player) {
     owner = player;
+    player->addProperty(this);
 }
 
 Player* Ownable::getOwner() const { return owner; }

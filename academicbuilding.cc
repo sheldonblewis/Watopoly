@@ -51,3 +51,7 @@ bool AcademicBuilding::improve(Player* player) {
   improvements++;
   return true;
 }
+
+void AcademicBuilding::mortgage() { mortgaged = true; }
+
+void AcademicBuilding::unmortgage() { mortgaged = false; }

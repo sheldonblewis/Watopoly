@@ -160,6 +160,9 @@ void Board::removePlayer(std::shared_ptr<Player> player) {
 }
 
 Square* Board::getSquare(int position) const {
+    if (position < 0 || position >= 40) {
+        position = position % 40;
+    }
     return squares.at(position).get();
 }
 
