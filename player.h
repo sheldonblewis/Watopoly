@@ -29,7 +29,7 @@ class Player : public std::enable_shared_from_this<Player> {
 public:
     Player(std::string name, char symbol);
     bool isBankrupt() const;
-    int roll(Board& board);
+    std::tuple<int, int, int> roll(Board& board);
     int getPosition();
     std::string getName() const;
     char getSymbol() const;

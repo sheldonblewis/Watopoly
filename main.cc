@@ -199,7 +199,6 @@ int main(int argc, char* argv[]) {
 
                         if (amount_owned > 0) {
                             std::cout << "Congratulations you receive $" << amount_owned << " from the Needles Hall!" <<std::endl;
-                            bool transaction_successful = currentPlayer->changeBalance(amount_owned);
                         } else {
                             std::cout << "You landed on the Needles hall have to pay $" << amount_owned << std::endl;
 
@@ -405,7 +404,14 @@ int main(int argc, char* argv[]) {
                 if (command == "roll") {
                     if (!rolled) {
                         rolled = true;
-                        int prevPos = currentPlayer->roll(board);
+                        std::tuple<int, int, int> roll = currentPlayer->roll(board);
+                        int prevPos = std::get<0>(roll);
+                        int die1 = std::get<1>(roll);
+                        int die2 = std::get<2>(roll);
+                        if (die1 == die2) {
+                            std::cout << "You rolled doubles! You get to roll again.\n";
+                            rolled = false;
+                        }
                         board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
                         board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
                         board.drawBoard();
@@ -555,18 +561,18 @@ int main(int argc, char* argv[]) {
                 } else if (command == "help") {
                     std::cout <<
                     "Available commands:\n"
-                    "• roll                        - Roll two dice and move forward.\n"
-                    "• next                        - End your turn and pass to the next player.\n"
-                    "• trade <name> <give> <receive> - Propose a trade with another player.\n"
+                    "> roll                        - Roll two dice and move forward.\n"
+                    "> next                        - End your turn and pass to the next player.\n"
+                    "> trade <name> <give> <receive> - Propose a trade with another player.\n"
                     "    (give/receive can be a property or an amount of money)\n"
-                    "• improve <property> buy/sell - Buy or sell an improvement on a property.\n"
-                    "• mortgage <property>         - Mortgage a property.\n"
-                    "• unmortgage <property>       - Unmortgage a property.\n"
-                    "• bankrupt                    - Declare bankruptcy (only when required).\n"
-                    "• assets                      - Show current player’s assets.\n"
-                    "• all                         - Show all players’ assets.\n"
-                    "• save <filename>             - Save the current game state.\n"
-                    "• help                        - Show this help message.\n\n"
+                    "> improve <property> buy/sell - Buy or sell an improvement on a property.\n"
+                    "> mortgage <property>         - Mortgage a property.\n"
+                    "> unmortgage <property>       - Unmortgage a property.\n"
+                    "> bankrupt                    - Declare bankruptcy (only when required).\n"
+                    "> assets                      - Show current player’s assets.\n"
+                    "> all                         - Show all players’ assets.\n"
+                    "> save <filename>             - Save the current game state.\n"
+                    "> help                        - Show this help message.\n\n"
                     "Note: Properties with improvements cannot be traded or mortgaged.\n"
                     << std::endl;
                 } else if (command == "trade") {

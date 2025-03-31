@@ -50,7 +50,7 @@ int Player::getBalance() const{
     return balance;
 }
 
-int Player::roll(Board& board) {
+std::tuple<int, int, int> Player::roll(Board& board) {
     int die1 = rand() % 6 + 1;
     int die2 = rand() % 6 + 1;
     int move = die1 + die2;
@@ -58,18 +58,17 @@ int Player::roll(Board& board) {
 
     position += move;
 
-    int result = (position - move) % 40;
+    int prev = (position - move) % 40;
 
     if (position >= 40) {
         position -= 40;
-        result += 40;
         changeBalance(200);
         std::cout << name << " passed \"Collect OSAP\" and collected $200!" << std::endl;
     }
 
     std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
 
-    return result;
+    return std::tuple(prev, die1, die2);
 }
 
 
