@@ -67,10 +67,6 @@ int Player::roll(Board& board) {
         std::cout << name << " passed \"Collect OSAP\" and collected $200!" << std::endl;
     }
 
-    std::cout << "\n\n" <<position << "\n\n";
-
-    std::cout << "\n\n" <<  result << "\n\n";
-
     std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
 
     return result;

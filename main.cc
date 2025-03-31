@@ -41,13 +41,24 @@ int main(int argc, char* argv[]) {
     };
 
     int numPlayers;
+    std::string input;
     std::set<char> takenChars;
 
     while (true) {
         std::cout << "Enter number of players (2-6): ";
-        std::cin >> numPlayers;
-        if (numPlayers >= 2 && numPlayers <= 6) break;
-        std::cout << "Invalid number. Please enter a value between 2 and 6.\n";
+        std::cin >> input;
+        if (isInteger(input)) {
+            numPlayers = std::stoi(input);
+            if (numPlayers >= 2 && numPlayers <= 6) {
+                break;
+            } else {
+                std::cout << "Invalid number. Please enter a value between 2 and 6.\n";
+            }
+        } else {
+            std::cout << "Please enter an integer\n";
+        }
+        
+        
     }
 
     for (int i = 0; i < numPlayers; ++i) {
@@ -97,10 +108,12 @@ int main(int argc, char* argv[]) {
 
         rolled = false;
 
+        int action_done = false;
+
         while (true) {
             std::cout << "Enter \"help\" for a list of commands.\n";
             Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
-            if (rolled) {
+            if (rolled && !action_done) {
                 if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
                     if (!ownable->getOwner()) {
                         Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
@@ -119,6 +132,8 @@ int main(int argc, char* argv[]) {
                                 std::cout << currentPlayer->getName() << " paid $" << fees << " in rent to " << ownable->getOwner()->getName() << ".\n";
                             } else {
                                 std::cout << currentPlayer->getName() << " cannot afford the rent and is bankrupt!\n";
+                                board.removePlayer(currentPlayer);
+                                currentPlayer->declareBankruptcy(nullptr, board, players);
                                 players.erase(players.begin() + currentPlayerIndex);
                                 break;
                             }
@@ -183,7 +198,8 @@ int main(int argc, char* argv[]) {
                         }
 
                         if (amount_owned > 0) {
-                            std::cout << "Congratulations you receive $" << amount_owned << "from the Needles Hall!" <<std::endl;
+                            std::cout << "Congratulations you receive $" << amount_owned << " from the Needles Hall!" <<std::endl;
+                            bool transaction_successful = currentPlayer->changeBalance(amount_owned);
                         } else {
                             std::cout << "You landed on the Needles hall have to pay $" << amount_owned << std::endl;
 
@@ -212,7 +228,10 @@ int main(int argc, char* argv[]) {
                                     currentPlayer->changeBalance(amount_owned);
                                 } else {
                                     currentPlayer->declareBankruptcy(nullptr, board, players);
+                                    board.removePlayer(currentPlayer);
                                     std::cout << "You have declared bankrupcy!" << std::endl;
+                                    players.erase(players.begin() + currentPlayerIndex);
+                                    break;
                                 }
                             }
                         }
@@ -257,10 +276,15 @@ int main(int argc, char* argv[]) {
                             } else {
                                 currentPlayer->declareBankruptcy(nullptr, board, players);
                                 std::cout << "You have declared bankrupcy!" << std::endl;
+                                board.removePlayer(currentPlayer);
+                                players.erase(players.begin() + currentPlayerIndex);
+                                break;
                             }
                         }
                     }
                 }
+
+                action_done = true;
             }
 
             if (currentPlayer->isInTimsLine()) {
@@ -348,10 +372,23 @@ int main(int argc, char* argv[]) {
                             } else {
                                 if (currentPlayer->getBalance() < 50) {
                                     currentPlayer->declareBankruptcy(nullptr, board, players);
+                                    board.removePlayer(currentPlayer);
                                     std::cout << "You have declared bankrupcy!" << std::endl;
+                                    players.erase(players.begin() + currentPlayerIndex);
+                                    break;
                                 } else {
                                     currentPlayer->leaveTimsLine();
                                 }
+                            }
+                        } else {
+                            if (currentPlayer->getBalance() < 50) {
+                                currentPlayer->declareBankruptcy(nullptr, board, players);
+                                board.removePlayer(currentPlayer);
+                                std::cout << "You have declared bankrupcy!" << std::endl;
+                                players.erase(players.begin() + currentPlayerIndex);
+                                break;
+                            } else {
+                                currentPlayer->leaveTimsLine();
                             }
                         }
                     }
@@ -625,6 +662,11 @@ int main(int argc, char* argv[]) {
                         break;
                     }
                     continue;
+                } else if (command == "money") {
+                    int amount;
+                    std::cin >> amount;
+
+                    currentPlayer->changeBalance(amount);
                 } else {
                     std::cout << "Unknown command. Try again." << std::endl;
                 }
@@ -633,4 +675,6 @@ int main(int argc, char* argv[]) {
         
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
     }
+
+    std::cout << players[0]->getName() << " wins the game!\n";
 }
