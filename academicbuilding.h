@@ -53,7 +53,7 @@ public:
     void drawImprovements() const {
         for (int i = 0; i < 5; ++i) {
             if (i < improvements) {
-                std::cout << "X";
+                std::cout << "I";
             } else {
                 std::cout << " ";
             }

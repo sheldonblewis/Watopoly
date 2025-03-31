@@ -17,6 +17,7 @@ Player::Player(std::string name, char symbol) : name{name}, symbol{symbol} {}
 void Player::saveState(std::ostream& out) const {
     out << name << " " << symbol << " " << cups << " " << balance << " " << position;
     if (inTimsLine) out << " 1 " << turnsInTimsLine;
+    else if (position == 10) out << " 0";
     out << "\n";
 }
 
@@ -66,8 +67,12 @@ int Player::getNetWorth() const {
 
 std::tuple<int, int, int> Player::roll(bool testing) {
     int die1, die2;
-    if (testing) {
+    if (testing && std::cin.peek() != '\n') {
         std::cin >> die1 >> die2;
+        if (die1 < 0 || die2 < 0) {
+            std::cout << "Invalid input. Please enter two non-negative integers after roll." << std::endl;
+            return roll(testing); // Retry rolling
+        }
     } else {
         die1 = rand() % 6 + 1;
         die2 = rand() % 6 + 1;
@@ -473,8 +478,8 @@ void Player::sendToTimsLine(Board& board) {
     std::cout << "You are now in the DC Tims Line." << std::endl;
     turnsInTimsLine = 0;
     inTimsLine = true;
-    board.getSquare(10)->addPlayer(shared_from_this());
     board.getSquare(getPosition())->removePlayer(shared_from_this());
+    board.getSquare(10)->addPlayer(shared_from_this());
     board.drawBoard();
     position = 10;
 }
@@ -499,6 +504,18 @@ void Player::useCup() {
 }
 
 bool Player::tryToLeaveTimsLine() {
+    std::cout << "You are trying to leave the DC Tims Line. Enter 'roll' to attempt ot roll doubles." << std::endl;
+    std::string command;
+    while (true) {
+        std::cout << "> ";
+        std::cin >> command;
+        if (command != "roll") {
+            std::cout << "Invalid command. You must enter 'roll' to attempt to leave the DC Tims Line." << std::endl;
+        } else {
+            break;
+        }
+    }
+    
     int die1 = rand() % 6 + 1;
     int die2 = rand() % 6 + 1;
 

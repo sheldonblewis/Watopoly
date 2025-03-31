@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
     std::vector<std::shared_ptr<Player>> players;
 
     bool testing = false;
+    bool saved = false;
     std::string loadFile;
 
     for (int i = 1; i < argc; ++i) {
@@ -38,6 +39,7 @@ int main(int argc, char* argv[]) {
         } else if (arg == "-load" && i + 1 < argc) {
             std::ifstream file(argv[2]);
             board.loadState(file, players);
+            saved = true;
         }
     }
 
@@ -52,58 +54,59 @@ int main(int argc, char* argv[]) {
     std::string input;
     std::set<char> takenChars;
 
-    while (true) {
-        std::cout << "Enter number of players (2-6): ";
-        std::cin >> input;
-        if (isInteger(input)) {
-            numPlayers = std::stoi(input);
-            if (numPlayers >= 2 && numPlayers <= 6) {
-                break;
-            } else {
-                std::cout << "Invalid number. Please enter a value between 2 and 6.\n";
-            }
-        } else {
-            std::cout << "Please enter an integer\n";
-        }
-        
-        
-    }
-
-    for (int i = 0; i < numPlayers; ++i) {
-        std::string name;
-        char symbol;
-
-        std::cout << "Enter name for Player " << (i + 1) << ": ";
-        std::cin >> name;
-
+    if (!saved) {
         while (true) {
-            std::cout << "Choose a character from the list:\n";
-            for (char ch : allowedChars) {
-                if (takenChars.find(ch) == takenChars.end()) {
-                    std::cout << ch << " (" << charNames[ch] << ")\n";
+            std::cout << "Enter number of players (2-6): ";
+            std::cin >> input;
+            if (isInteger(input)) {
+                numPlayers = std::stoi(input);
+                if (numPlayers >= 2 && numPlayers <= 6) {
+                    break;
+                } else {
+                    std::cout << "Invalid number. Please enter a value between 2 and 6.\n";
+                }
+            } else {
+                std::cout << "Please enter an integer\n";
+            }
+        }
+
+        for (int i = 0; i < numPlayers; ++i) {
+            std::string name;
+            char symbol;
+
+            std::cout << "Enter name for Player " << (i + 1) << ": ";
+            std::cin >> name;
+
+            while (true) {
+                std::cout << "Choose a character from the list:\n";
+                for (char ch : allowedChars) {
+                    if (takenChars.find(ch) == takenChars.end()) {
+                        std::cout << ch << " (" << charNames[ch] << ")\n";
+                    }
+                }
+
+                std::cout << "Enter character: ";
+                std::cin >> symbol;
+
+                if (std::find(allowedChars.begin(), allowedChars.end(), symbol) != allowedChars.end()
+                    && takenChars.find(symbol) == takenChars.end()) {
+                    takenChars.insert(symbol);
+                    break;
+                } else {
+                    std::cout << "Invalid or already taken character. Try again.\n";
                 }
             }
-
-            std::cout << "Enter character: ";
-            std::cin >> symbol;
-
-            if (std::find(allowedChars.begin(), allowedChars.end(), symbol) != allowedChars.end()
-                && takenChars.find(symbol) == takenChars.end()) {
-                takenChars.insert(symbol);
-                break;
-            } else {
-                std::cout << "Invalid or already taken character. Try again.\n";
-            }
+            
+            auto player = std::make_shared<Player>(name, symbol);
+            board.addPlayer(player);
+            players.push_back(player);
+            board.getSquare(0)->addPlayer(player);  // start all players at position 0
+            std::cout << name << " has chosen " << charNames[symbol] << " (" << symbol << ").\n";
         }
-        
-        auto player = std::make_shared<Player>(name, symbol);
-        board.addPlayer(player);
-        players.push_back(player);
-        board.getSquare(0)->addPlayer(player);  // start all players at position 0
-        std::cout << name << " has chosen " << charNames[symbol] << " (" << symbol << ").\n";
+
+        std::cout << "Game starting!" << std::endl;
     }
 
-    std::cout << "Game starting!" << std::endl;
     int currentPlayerIndex = 0;
     std::string command;
 
@@ -124,7 +127,7 @@ int main(int argc, char* argv[]) {
                 std::cout << "Enter \"help\" for a list of commands.\n";
             }
             Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
-            if (rolled && !action_done) {
+            if ((rolled || doubleCounter > 0) && !action_done) {
                 if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
                     if (!ownable->getOwner()) {
                         Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
@@ -135,7 +138,7 @@ int main(int argc, char* argv[]) {
                             if (currentPlayer->changeBalance(-ownable->getCost())) {
                                 ownable->changeOwner(currentPlayer.get());
                                 currentPlayer->addProperty(ownable);
-                                std::cout << currentPlayer->getName() << " purchased " << ownable->getName() << " for $" << ownable->getCost() << ".\n";
+                                std::cout << currentPlayer->getName() << " purchased " << ownable->getName() << " for $" << ownable->getCost() << ".\nNew balance: $" << currentPlayer->getBalance() << ".\n";
                             } else {
                                 std::cout << currentPlayer->getName() << " cannot afford " << ownable->getName() << ".\n";
                                 std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is going up for auction!\n";
@@ -274,8 +277,10 @@ int main(int argc, char* argv[]) {
 
                         if (amount_owed > 0) {
                             std::cout << "Congratulations! You receive $" << amount_owed << " from Needles Hall." <<std::endl;
+                            std::cout << "New balance: $" << currentPlayer->getBalance() + amount_owed << std::endl;
                         } else {
-                            std::cout << "You landed on Needles Hall. Cough up $" << amount_owed << std::endl;
+                            std::cout << "You landed on Needles Hall. Cough up $" << -amount_owed << std::endl;
+                            std::cout << "New balance: $" << currentPlayer->getBalance() + amount_owed << std::endl;
 
                             bool transaction_successful = currentPlayer->changeBalance(amount_owed);
     
@@ -314,7 +319,7 @@ int main(int argc, char* argv[]) {
                     } else if (curr_position == 10) { // DC TIMS LINE
                         std::cout << "You are visiting the DC Tims Line." << std::endl;
 
-                    } else if (curr_position == 20) { // GOOSE NESTING 
+                    } else if (curr_position == 20) { // GOOSE NESTING
                         std::cout << "You are being attacked by a flock of nesting geese! RUN!" << std::endl;
 
                     } else if (curr_position == 30) { // GO TO TIMS
@@ -327,7 +332,7 @@ int main(int argc, char* argv[]) {
                         bool transaction_successful = currentPlayer->changeBalance(-150);
 
                         if (transaction_successful) {
-                            std::cout << "You have successfully payed the Co-op fee" << std::endl;
+                            std::cout << "You have successfully paid the Co-op fee" << std::endl;
                         } else {
                             std::cout << "You don't have enough funds to pay the Co-op fee!" << std::endl;
 
@@ -379,7 +384,7 @@ int main(int argc, char* argv[]) {
                             std::cout << "Would you like to use one of your Roll Up the Rim Cups to leave the DC Tims Line? (Y/N): ";
                             std::cin >> answer;
                             
-                            if (answer == "Y") {
+                            if (answer == "Y" || answer == "y") {
                                 currentPlayer->useCup();
                                 currentPlayer->leaveTimsLine();
                                 std::cout << "Transaction succesful, you are leaving the DC Tims Line.";
@@ -388,7 +393,7 @@ int main(int argc, char* argv[]) {
                                 std::cout << "Would you like to pay $50 to exit the DC Tims Line? (Y/N): ";
                                 std::cin >> answer;
     
-                                if (answer == "Y") {
+                                if (answer == "Y" || answer == "y") {
                                     bool transaction_successful = currentPlayer->changeBalance(-50);
     
                                     if (transaction_successful) {
@@ -411,7 +416,7 @@ int main(int argc, char* argv[]) {
                             std::cout << "Would you like to pay $50 to exit the DC Tims Line? (Y/N): ";
                                 std::cin >> answer;
     
-                                if (answer == "Y") {
+                                if (answer == "Y" || answer == "y") {
                                     bool transaction_successful = currentPlayer->changeBalance(-50);
     
                                     if (transaction_successful) {
@@ -436,10 +441,10 @@ int main(int argc, char* argv[]) {
                         
                         if (currentPlayer->getNumCups() > 0) {
                             std::cout << "This is your last chance to get out of the DC Tims Line. Would you like to use your Roll up The Rum Cup?\n"
-                            "Note that if you don't use it now and don't have enough funds to pay bail, you will have to declare bancrupcy. (Y/N): ";
+                            "Note that if you don't use it now and don't have enough funds to pay bail, you will have to declare bankruptcy. (Y/N): ";
                             std::cin >> answer;
                             
-                            if (answer == "Y") {
+                            if (answer == "Y" || answer == "y") {
                                 currentPlayer->useCup();
                                 currentPlayer->leaveTimsLine();
                                 std::cout << "Transaction succesful, you are leaving the DC Tims Line." << std::endl;
@@ -480,7 +485,6 @@ int main(int argc, char* argv[]) {
                         int die1 = std::get<1>(roll);
                         int die2 = std::get<2>(roll);
                         if (die1 == die2) {
-                            std::cout << "You rolled doubles! You get to roll again.\n";
                             rolled = false;
                             doubleCounter++;
                             if (doubleCounter == 3) {
@@ -492,14 +496,21 @@ int main(int argc, char* argv[]) {
                         board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
                         board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
                         board.drawBoard();
+                        if (die1 == die2 && doubleCounter != 3) {
+                            std::cout << "You rolled doubles! You get to roll again.\n";
+                        }
                         std::cout << currentPlayer->getName() << " rolled " << die1 << " + " << die2 << " = " << die1+die2 << std::endl;
                         std::cout << currentPlayer->getName() << " moved to " << board.getSquare(currentPlayer->getPosition())->getName() << std::endl;
                         std::cout << "\nEnter \"help\" for a list of commands.\n";
                     } else {
                         std::cout << "You have already rolled this turn.\n";
                     }
-                }else if (command == "next" && rolled) {
-                    break;
+                }else if (command == "next") {
+                    if (rolled) {
+                        break;
+                    } else {
+                        std::cout << "You must roll before you can end your turn.\n";
+                    }
                 } else if (command == "assets") {
                     currentPlayer->displayAssets();
                 } else if (command == "all") {
@@ -601,11 +612,11 @@ int main(int argc, char* argv[]) {
                         continue;
                     }
 
-                    if (currentPlayer->getBalance() < (ownable->getCost() / 2) * 0.1) {
+                    if (currentPlayer->getBalance() < ownable->getCost() * 0.6) {
                         std::cout << "Not enough money to unmortgage property" << std::endl;
                     } else {
                         ownable->unmortgage();
-                        currentPlayer->changeBalance(-((ownable->getCost() / 2) * 0.1));
+                        currentPlayer->changeBalance(-(ownable->getCost() * 0.6));
                         std::cout << property << " has been unmortgaged.\n";
                     }
                 
@@ -648,7 +659,7 @@ int main(int argc, char* argv[]) {
         
                         std::cin >> decision;
         
-                        if (decision == "Y") {
+                        if (decision == "Y" || decision == "y") {
                             if (!giveInt && !receiveInt) { // trade property for property                     
                                 Ownable* give_ptr = board.findOwnableByName(give);
                                 Ownable* receive_ptr = board.findOwnableByName(receive);
