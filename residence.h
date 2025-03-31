@@ -12,9 +12,8 @@ public:
     // calculates fees based on how many other residences owner has, returns the fees that player that stepped on owes
     int calculateFees();
 
-    bool isOwnable() const override {
-        return true;
-    }
+    // always returns false
+    bool isOwnable() const override;
 };
 
 #endif

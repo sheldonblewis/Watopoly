@@ -21,3 +21,13 @@ int Gym::calculateFees() {
         return 10 * sum;
     }
 }
+
+
+bool Gym::isOwnable() const override {
+    return true;
+}
+
+
+bool Gym::isGym() const override {
+    return true;
+}

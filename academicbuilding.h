@@ -20,23 +20,13 @@ public:
     // returns building's monopoly block
     std::string getMonopolyBlock() const;
 
-    // attempts to inprove the academic building, returns true if suceeded, false otherwise (should print out why it failed)
+    // attempts to improve the academic building, returns true if suceeded, false otherwise (should print out why it failed)
     // player is intended to be the current player
     bool improve(Player* player);
 
-    bool degrade(Player* player) {
-        if (owner != player) {
-            return false;
-        }
-
-        if (improvements == 0) {
-            return false;
-        }
-
-        improvements--;
-        owner->changeBalance(improvementCost / 2);
-        return true;
-    }
+    // attempts to degrade the academic building, returns true if suceeded, false otherwise (should print out why it failed)
+    // player is intended to be the current player
+    bool degrade(Player* player);
 
     // attempts to mortgage the academic building, returns true if suceeded, false otherwise (should print out why it failed)
     void mortgage();
@@ -44,32 +34,21 @@ public:
     // attempts to unmortgage the academic building, returns true if suceeded, false otherwise (should print out why it failed)
     void unmortgage();
 
+    // returns true if the object it is called on inherits from ownable
     bool isOwnable() const;
 
-    int numImprovements() const {
-        return improvements;
-    }
+    // returns number of improvements of the academic building
+    int numImprovements() const;
 
-    void drawImprovements() const {
-        for (int i = 0; i < 5; ++i) {
-            if (i < improvements) {
-                std::cout << "X";
-            } else {
-                std::cout << " ";
-            }
-        }
-    }
+    // Draws 'X' for each improvement the academic building has
+    void drawImprovements() const;
 
-    int getImprovementCost() const {
-        return improvementCost;
-    }
+    // returns improvement cost of the academic building object
+    int getImprovementCost() const;
 
-    int calculateFees() override {
-        if (owner->ownsAll(monopolyBlock)) {
-            return tuitions[improvements] * 2;
-        }
-        return tuitions[improvements];
-    }
+    // returns the fees owned to the owner if another player stepped on the square
+    // based on number of improvemetns and number of properties owned
+    int calculateFees() override;
 };
 
 #endif

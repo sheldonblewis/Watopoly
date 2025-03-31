@@ -24,3 +24,5 @@ void Ownable::unmortgage() { mortgaged = false; }
 void Ownable::changeOwner(Player* newOwner) {
     owner = newOwner;
 }
+
+bool Ownable::isGym() const { return false; }

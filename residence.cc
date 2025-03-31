@@ -17,6 +17,11 @@ int Residence::calculateFees() {
     } else {
         return 200;
     }
+
+
+    bool Residence::isOwnable() const {
+        return true;
+    }
 }
 
 

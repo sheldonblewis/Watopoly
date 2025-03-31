@@ -589,3 +589,18 @@ void Player::declareBankruptcyToBank(Board& board, std::vector<std::shared_ptr<P
     cups = 0;
     bankrupt = true;
 }
+
+
+void Player::setCups(int cups) {
+    this->cups = cups;
+}
+
+void Player::setTurnsInTimsLine(int turns) {
+    this->turnsInTimsLine = turns;
+}
+
+
+void Player::sendToTimsLine() {
+    position = 10;
+    inTimsLine = true;
+}

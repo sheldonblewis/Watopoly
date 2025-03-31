@@ -62,10 +62,9 @@ public:
 
     bool ownsAll(const std::string& monopolyBlock) const;
 
-    void sendToTimsLine() {
-        position = 10;
-        inTimsLine = true;
-    }
+    // sends player to jail (tims line)
+    void sendToTimsLine();
+
     // removes the property from the correcponding vector in the players attribute
     // ASSUMES PLAYER OWNS PROPERTY
     void removeProperty(Ownable* property);
@@ -104,9 +103,8 @@ public:
     // get the number of rounds the player has been in jail
     int getTurnsInTimsLine();
 
-    void setTurnsInTimsLine(int turns) {
-        this->turnsInTimsLine = turns;
-    }
+    // sets the number of turns in tims line to turns
+    void setTurnsInTimsLine(int turns);
 
     // sets inTimsLine to false and num rounds in jail to 0
     void leaveTimsLine();
@@ -114,9 +112,8 @@ public:
     // decreases the number of roll up rims
     void useCup();
 
-    void setCups(int cups) {
-        this->cups = cups;
-    }
+    // changes the number of cups to cups
+    void setCups(int cups);
 
     // increases num rounds in jail by 1
     void incTurnsInTimsLine();
@@ -127,10 +124,16 @@ public:
     // changes position of player to n
     void changePosition(int n);
 
+    // declare bankruptcy
     void declareBankruptcy(std::shared_ptr<Player> creditor, Board& board, std::vector<std::shared_ptr<Player>>& players);
+    
+    // declare bankruptcy
     void declareBankruptcyToBank(Board& board, std::vector<std::shared_ptr<Player>>& players);
     
+    // loads a game state from a file
     void loadState(std::istream& in);
+
+    // saves the state of the game to a file
     void saveState(std::ostream& out) const;
 };
 

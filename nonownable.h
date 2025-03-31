@@ -7,6 +7,8 @@
 class NonOwnable : public Square {
 public:
     NonOwnable(int position, std::string name);
+    
+    // always returns false;
     bool isOwnable() const override;
 };
 

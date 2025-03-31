@@ -55,3 +55,46 @@ bool AcademicBuilding::improve(Player* player) {
 void AcademicBuilding::mortgage() { mortgaged = true; }
 
 void AcademicBuilding::unmortgage() { mortgaged = false; }
+
+
+void AcademicBuilding::drawImprovements() const {
+  for (int i = 0; i < 5; ++i) {
+      if (i < improvements) {
+          std::cout << "X";
+      } else {
+          std::cout << " ";
+      }
+  }
+}
+
+
+int AcademicBuilding::numImprovements() const {
+  return improvements;
+}
+
+
+int AcademicBuilding::calculateFees() {
+  if (owner->ownsAll(monopolyBlock)) {
+      return tuitions[improvements] * 2;
+  }
+  return tuitions[improvements];
+}
+
+
+int AcademicBuilding::getImprovementCost() const {
+  return improvementCost;
+}
+
+bool AcademicBuilding::degrade(Player* player) {
+  if (owner != player) {
+      return false;
+  }
+
+  if (improvements == 0) {
+      return false;
+  }
+
+  improvements--;
+  owner->changeBalance(improvementCost / 2);
+  return true;
+}
