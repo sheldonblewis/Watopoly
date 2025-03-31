@@ -23,11 +23,11 @@ int Gym::calculateFees() {
 }
 
 
-bool Gym::isOwnable() const override {
+bool Gym::isOwnable() const {
     return true;
 }
 
 
-bool Gym::isGym() const override {
+bool Gym::isGym() const {
     return true;
 }

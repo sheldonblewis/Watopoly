@@ -18,10 +18,10 @@ int Residence::calculateFees() {
         return 200;
     }
 
+}
 
-    bool Residence::isOwnable() const {
-        return true;
-    }
+bool Residence::isOwnable() const {
+    return true;
 }
 
 
