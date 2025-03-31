@@ -46,15 +46,33 @@ std::string Player::getName() const {
     return name;
 }
 
-int Player::getBalance() const{
+int Player::getBalance() const {
     return balance;
 }
 
-std::tuple<int, int, int> Player::roll(Board& board) {
-    int die1 = rand() % 6 + 1;
-    int die2 = rand() % 6 + 1;
+int Player::getNetWorth() const {
+    int netWorth = balance;
+    for (const auto& ac : academicBuildingsOwned) {
+        netWorth += ac->getCost() + (ac->numImprovements() * ac->getImprovementCost());
+    }
+    for (const auto& gym : gymsOwned) {
+        netWorth += gym->getCost();
+    }
+    for (const auto& res : residencesOwned) {
+        netWorth += res->getCost();
+    }
+    return netWorth;
+}
+
+std::tuple<int, int, int> Player::roll(bool testing) {
+    int die1, die2;
+    if (testing) {
+        std::cin >> die1 >> die2;
+    } else {
+        die1 = rand() % 6 + 1;
+        die2 = rand() % 6 + 1;
+    }
     int move = die1 + die2;
-    std::cout << name << " rolled " << die1 << " + " << die2 << " = " << move << std::endl;
 
     position += move;
 
@@ -65,8 +83,6 @@ std::tuple<int, int, int> Player::roll(Board& board) {
         changeBalance(200);
         std::cout << name << " passed \"Collect OSAP\" and collected $200!" << std::endl;
     }
-
-    std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
 
     return std::tuple(prev, die1, die2);
 }

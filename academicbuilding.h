@@ -65,10 +65,15 @@ public:
     }
 
     int calculateFees() override {
-        if (owner->ownsAll(monopolyBlock)) {
-            return tuitions[improvements] * 2;
+        if (owner->ownsAll(monopolyBlock) && improvements == 0) {
+            std::cout << getOwner() <<" has all properties in the " << monopolyBlock << " block, charging double tuition.\n";
+            return tuitions[0] * 2;
+        } else if (improvements != 0) {
+            std::cout << getOwner() << " has " << improvements << " improvements on " << getName() << ".\n";
+            return tuitions[improvements];
+        } else {
+            return tuitions[0];
         }
-        return tuitions[improvements];
     }
 };
 
