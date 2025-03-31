@@ -34,7 +34,11 @@ void Player::loadState(std::istream& in) {
     }
 }
 
-int Player::getPosition() const {
+int Player::getPosition() {
+    if (position < 0 || position >= 40) {
+        position = position % 40;
+    }
+    
     return position;
 }
 
@@ -53,15 +57,23 @@ int Player::roll(Board& board) {
     std::cout << name << " rolled " << die1 << " + " << die2 << " = " << move << std::endl;
 
     position += move;
+
+    int result = (position - move) % 40;
+
     if (position >= 40) {
         position -= 40;
+        result += 40;
         changeBalance(200);
         std::cout << name << " passed \"Collect OSAP\" and collected $200!" << std::endl;
     }
 
+    std::cout << "\n\n" <<position << "\n\n";
+
+    std::cout << "\n\n" <<  result << "\n\n";
+
     std::cout << name << " moved to " << board.getSquare(position)->getName() << std::endl;
 
-    return (position - move) % 40;
+    return result;
 }
 
 

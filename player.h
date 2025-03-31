@@ -30,7 +30,7 @@ public:
     Player(std::string name, char symbol);
     bool isBankrupt() const;
     int roll(Board& board);
-    int getPosition() const;
+    int getPosition();
     std::string getName() const;
     char getSymbol() const;
     void displayAssets() const;
