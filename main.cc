@@ -28,9 +28,19 @@ int main(int argc, char* argv[]) {
     Board board;
     std::vector<std::shared_ptr<Player>> players;
 
-    if (argc > 1 && std::string(argv[1]) == "-load" && argc > 2) {
-        std::ifstream file(argv[2]);
-        board.loadState(file, players);
+    bool testing = false;
+    bool saved = false;
+    std::string loadFile;
+
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "-testing") {
+            testing = true;
+        } else if (arg == "-load" && i + 1 < argc) {
+            std::ifstream file(argv[2]);
+            board.loadState(file, players);
+            saved = true;
+        }
     }
 
     std::vector<char> allowedChars = {'G', 'B', 'D', 'P', 'S', '$', 'L', 'T'};
@@ -44,58 +54,59 @@ int main(int argc, char* argv[]) {
     std::string input;
     std::set<char> takenChars;
 
-    while (true) {
-        std::cout << "Enter number of players (2-6): ";
-        std::cin >> input;
-        if (isInteger(input)) {
-            numPlayers = std::stoi(input);
-            if (numPlayers >= 2 && numPlayers <= 6) {
-                break;
-            } else {
-                std::cout << "Invalid number. Please enter a value between 2 and 6.\n";
-            }
-        } else {
-            std::cout << "Please enter an integer\n";
-        }
-        
-        
-    }
-
-    for (int i = 0; i < numPlayers; ++i) {
-        std::string name;
-        char symbol;
-
-        std::cout << "Enter name for Player " << (i + 1) << ": ";
-        std::cin >> name;
-
+    if (!saved) {
         while (true) {
-            std::cout << "Choose a character from the list:\n";
-            for (char ch : allowedChars) {
-                if (takenChars.find(ch) == takenChars.end()) {
-                    std::cout << ch << " (" << charNames[ch] << ")\n";
+            std::cout << "Enter number of players (2-6): ";
+            std::cin >> input;
+            if (isInteger(input)) {
+                numPlayers = std::stoi(input);
+                if (numPlayers >= 2 && numPlayers <= 6) {
+                    break;
+                } else {
+                    std::cout << "Invalid number. Please enter a value between 2 and 6.\n";
+                }
+            } else {
+                std::cout << "Please enter an integer\n";
+            }
+        }
+
+        for (int i = 0; i < numPlayers; ++i) {
+            std::string name;
+            char symbol;
+
+            std::cout << "Enter name for Player " << (i + 1) << ": ";
+            std::cin >> name;
+
+            while (true) {
+                std::cout << "Choose a character from the list:\n";
+                for (char ch : allowedChars) {
+                    if (takenChars.find(ch) == takenChars.end()) {
+                        std::cout << ch << " (" << charNames[ch] << ")\n";
+                    }
+                }
+
+                std::cout << "Enter character: ";
+                std::cin >> symbol;
+
+                if (std::find(allowedChars.begin(), allowedChars.end(), symbol) != allowedChars.end()
+                    && takenChars.find(symbol) == takenChars.end()) {
+                    takenChars.insert(symbol);
+                    break;
+                } else {
+                    std::cout << "Invalid or already taken character. Try again.\n";
                 }
             }
-
-            std::cout << "Enter character: ";
-            std::cin >> symbol;
-
-            if (std::find(allowedChars.begin(), allowedChars.end(), symbol) != allowedChars.end()
-                && takenChars.find(symbol) == takenChars.end()) {
-                takenChars.insert(symbol);
-                break;
-            } else {
-                std::cout << "Invalid or already taken character. Try again.\n";
-            }
+            
+            auto player = std::make_shared<Player>(name, symbol);
+            board.addPlayer(player);
+            players.push_back(player);
+            board.getSquare(0)->addPlayer(player);  // start all players at position 0
+            std::cout << name << " has chosen " << charNames[symbol] << " (" << symbol << ").\n";
         }
-        
-        auto player = std::make_shared<Player>(name, symbol);
-        board.addPlayer(player);
-        players.push_back(player);
-        board.getSquare(0)->addPlayer(player);  // start all players at position 0
-        std::cout << name << " has chosen " << charNames[symbol] << " (" << symbol << ").\n";
+
+        std::cout << "Game starting!" << std::endl;
     }
 
-    std::cout << "Game starting!" << std::endl;
     int currentPlayerIndex = 0;
     std::string command;
 
@@ -107,24 +118,53 @@ int main(int argc, char* argv[]) {
         std::cout << "\nIt's " << currentPlayer->getName() << "'s turn (" << currentPlayer->getSymbol() << ")." << std::endl;
 
         rolled = false;
+        int doubleCounter = 0;
 
         int action_done = false;
 
         while (true) {
-            std::cout << "Enter \"help\" for a list of commands.\n";
+            if (!rolled) {
+                std::cout << "Enter \"help\" for a list of commands.\n";
+            }
             Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
-            if (rolled && !action_done) {
+            if ((rolled || doubleCounter > 0) && !action_done) {
                 if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
                     if (!ownable->getOwner()) {
                         Ownable* ownable = dynamic_cast<Ownable*>(board.getSquare(currentPlayer->getPosition()));
-                        std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Input \"buy\" to purchase it for $"<< ownable->getCost() << ".\nYou currently have $" << currentPlayer->getBalance() << ".\n";
+                        std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is unowned. Would you like to purchase it for $"<< ownable->getCost() << "? (Y/N)\nYou currently have $" << currentPlayer->getBalance() << ". If you choose not to buy, " << board.getSquare(currentPlayer->getPosition())->getName() << " will go up for auction.\n";
+                        std::cout << "> ";
+                        std::cin >> command;
+                        if (command == "Y" || command == "y") {
+                            if (currentPlayer->changeBalance(-ownable->getCost())) {
+                                ownable->changeOwner(currentPlayer.get());
+                                currentPlayer->addProperty(ownable);
+                                std::cout << currentPlayer->getName() << " purchased " << ownable->getName() << " for $" << ownable->getCost() << ".\nNew balance: $" << currentPlayer->getBalance() << ".\n";
+                            } else {
+                                std::cout << currentPlayer->getName() << " cannot afford " << ownable->getName() << ".\n";
+                                std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is going up for auction!\n";
+                                board.startAuction(std::shared_ptr<Ownable>(ownable), players);
+                            }
+                        } else if (command == "N" || command == "n") {
+                            std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is going up for auction!\n";
+                            board.startAuction(std::shared_ptr<Ownable>(ownable), players);
+                        } else {
+                            std::cout << "Invalid command. Please enter Y or N.\n";
+                        }
                     } else if (ownable->getOwner() != currentPlayer.get()) {
                         std::cout << board.getSquare(currentPlayer->getPosition())->getName() << " is owned by " << ownable->getOwner()->getName() << ".\n";
                         if (ownable->isMortgaged()) {
                             std::cout << "This property is mortgaged.\n";
                         } else {
                             if (ownable->isGym()) {
-                                std::cout << "Gyms charge rent at 4x the dice roll if the owner has 1 gym, or 10x if they have both. Rolling again...\n";
+                                std::cout << "Gyms charge rent at 4x the dice roll if the owner has 1 gym, or 10x if they have both. Enter \"roll\" to roll.\n> ";
+                                while (true) {
+                                    std::cin >> command;
+                                    if (command == "roll") {
+                                        break;
+                                    } else {
+                                        std::cout << "Invalid command. Please enter \"roll\".\n> ";
+                                    }
+                                }
                             }
                             int fees = ownable->calculateFees();
                             if (currentPlayer->changeBalance(-fees)) {
@@ -153,63 +193,103 @@ int main(int argc, char* argv[]) {
                         int choice = currentPlayer->randNum(24);
 
                         if (1 <= choice && choice <= 3) {
+                            std::cout << "Go back 3 spaces! You are now at " << board.getSquare(curr_position - 3)->getName() << std::endl;
                             board.movePlayer(currentPlayer, -3);
                         } else if (4 <= choice && choice <= 7) {
+                            std::cout << "Go back 2 spaces! You are now at " << board.getSquare(curr_position - 2)->getName() << std::endl;
                             board.movePlayer(currentPlayer, -2);
                         } else if (8 <= choice && choice <= 11) {
+                            std::cout << "Go back 1 space! You are now at " << board.getSquare(curr_position - 1)->getName() << std::endl;
                             board.movePlayer(currentPlayer, -1);
                         } else if (12 <= choice && choice <= 14) {
+                            std::cout << "Go forward 1 space! You are now at " << board.getSquare(curr_position + 1)->getName() << std::endl;
                             board.movePlayer(currentPlayer, 1);
                         } else if (15 <= choice && choice <= 18) {
+                            std::cout << "Go forward 2 spaces! You are now at " << board.getSquare(curr_position + 2)->getName() << std::endl;
                             board.movePlayer(currentPlayer, 2);
                         } else if (19 <= choice && choice <= 22) {
+                            std::cout << "Go forward 3 spaces! You are now at " << board.getSquare(curr_position + 3)->getName() << std::endl;
                             board.movePlayer(currentPlayer, 3);
                         } else if (choice == 23) {
+                            std::cout << "Go to the DC Tims Line! Lmaooooo" << std::endl;
                             currentPlayer->sendToTimsLine(board);
                         } else {
+                            std::cout << "Advance to Collect OSAP! Collect $200." << std::endl;
+                            currentPlayer->changeBalance(200);
                             currentPlayer->changePosition(0);
                             board.getSquare(0)->addPlayer(currentPlayer->shared_from_this());
                             board.getSquare(currentPlayer->getPosition())->removePlayer(currentPlayer->shared_from_this());
                             board.drawBoard();
                         }
-
                     } else if (curr_position == 4) { // TUITION
-
+                        int netWorth = currentPlayer->getNetWorth();
+                        std::cout << "You have to pay tuition! Enter \"1\" to pay $300, or \"2\" to pay 10% of your net worth ($" << netWorth << ").\n> ";
+                        while (true) {
+                            std::cin >> command;
+                            if (command == "1") {
+                                if (currentPlayer->changeBalance(-300)) {
+                                    std::cout << "You have successfully payed the tuition fee of $300." << std::endl;
+                                } else {
+                                    std::cout << "You don't have enough funds to pay the tuition fee!" << std::endl;
+                                    currentPlayer->declareBankruptcy(nullptr, board, players);
+                                    board.removePlayer(currentPlayer);
+                                    players.erase(players.begin() + currentPlayerIndex);
+                                    break;
+                                }
+                                break;
+                            } else if (command == "2") {
+                                int tuition = netWorth * 0.1;
+                                if (currentPlayer->changeBalance(-tuition)) {
+                                    std::cout << "You have successfully payed the tuition fee of $" << tuition << "." << std::endl;
+                                } else {
+                                    std::cout << "You don't have enough funds to pay the tuition fee!" << std::endl;
+                                    currentPlayer->declareBankruptcy(nullptr, board, players);
+                                    board.removePlayer(currentPlayer);
+                                    players.erase(players.begin() + currentPlayerIndex);
+                                    break;
+                                }
+                                break;
+                            } else {
+                                std::cout << "Invalid command. Please enter \"1\" or \"2\".\n> ";
+                            }
+                        }
                     } else if (curr_position == 7 || curr_position == 36 || curr_position == 22) { // NEEDLES HALL
                         currentPlayer->chanceForCup();
                         
                         int choice = currentPlayer->randNum(18);
-                        int amount_owned;
+                        int amount_owed;
 
                         if (choice == 1) {
-                            amount_owned = -200;
+                            amount_owed = -200;
                         } else if (2 <= choice && choice <= 3) {
-                            amount_owned = -100;
+                            amount_owed = -100;
                         } else if (4 <= choice && choice <= 6) {
-                            amount_owned = -50;
+                            amount_owed = -50;
                         } else if (7 <= choice && choice <= 12) {
-                            amount_owned = 25;
+                            amount_owed = 25;
                         } else if (13 <= choice && choice <= 15) {
-                            amount_owned = 50;
+                            amount_owed = 50;
                         } else if (16 <= choice && choice <= 17) {
-                            amount_owned = 100;
+                            amount_owed = 100;
                         } else {
-                            amount_owned = 200;
+                            amount_owed = 200;
                         }
 
-                        if (amount_owned > 0) {
-                            std::cout << "Congratulations you receive $" << amount_owned << " from the Needles Hall!" <<std::endl;
+                        if (amount_owed > 0) {
+                            std::cout << "Congratulations! You receive $" << amount_owed << " from Needles Hall." <<std::endl;
+                            std::cout << "New balance: $" << currentPlayer->getBalance() + amount_owed << std::endl;
                         } else {
-                            std::cout << "You landed on the Needles hall have to pay $" << amount_owned << std::endl;
+                            std::cout << "You landed on Needles Hall. Cough up $" << -amount_owed << std::endl;
+                            std::cout << "New balance: $" << currentPlayer->getBalance() + amount_owed << std::endl;
 
-                            bool transaction_successful = currentPlayer->changeBalance(amount_owned);
+                            bool transaction_successful = currentPlayer->changeBalance(amount_owed);
     
                             if (transaction_successful) {
                                 std::cout << "You have successfully payed the Needles Hall" << std::endl;
                             } else {
                                 std::cout << "You don't have enough funds to pay the Needles Hall" << std::endl;
     
-                                bool possible_to_survive = currentPlayer->possibleToSurvive(-amount_owned); // checks if the mortgage value of all of players buildings is > 150;
+                                bool possible_to_survive = currentPlayer->possibleToSurvive(-amount_owed); // checks if the mortgage value of all of players buildings is > 150;
     
                                 if (possible_to_survive) {
                                     bool enough_to_pay = false;
@@ -224,7 +304,7 @@ int main(int argc, char* argv[]) {
                                         }
                                     }
     
-                                    currentPlayer->changeBalance(amount_owned);
+                                    currentPlayer->changeBalance(amount_owed);
                                 } else {
                                     currentPlayer->declareBankruptcy(nullptr, board, players);
                                     board.removePlayer(currentPlayer);
@@ -239,7 +319,7 @@ int main(int argc, char* argv[]) {
                     } else if (curr_position == 10) { // DC TIMS LINE
                         std::cout << "You are visiting the DC Tims Line." << std::endl;
 
-                    } else if (curr_position == 20) { // GOOSE NESTING 
+                    } else if (curr_position == 20) { // GOOSE NESTING
                         std::cout << "You are being attacked by a flock of nesting geese! RUN!" << std::endl;
 
                     } else if (curr_position == 30) { // GO TO TIMS
@@ -252,7 +332,7 @@ int main(int argc, char* argv[]) {
                         bool transaction_successful = currentPlayer->changeBalance(-150);
 
                         if (transaction_successful) {
-                            std::cout << "You have successfully payed the Co-op fee" << std::endl;
+                            std::cout << "You have successfully paid the Co-op fee" << std::endl;
                         } else {
                             std::cout << "You don't have enough funds to pay the Co-op fee!" << std::endl;
 
@@ -304,7 +384,7 @@ int main(int argc, char* argv[]) {
                             std::cout << "Would you like to use one of your Roll Up the Rim Cups to leave the DC Tims Line? (Y/N): ";
                             std::cin >> answer;
                             
-                            if (answer == "Y") {
+                            if (answer == "Y" || answer == "y") {
                                 currentPlayer->useCup();
                                 currentPlayer->leaveTimsLine();
                                 std::cout << "Transaction succesful, you are leaving the DC Tims Line.";
@@ -313,7 +393,7 @@ int main(int argc, char* argv[]) {
                                 std::cout << "Would you like to pay $50 to exit the DC Tims Line? (Y/N): ";
                                 std::cin >> answer;
     
-                                if (answer == "Y") {
+                                if (answer == "Y" || answer == "y") {
                                     bool transaction_successful = currentPlayer->changeBalance(-50);
     
                                     if (transaction_successful) {
@@ -336,7 +416,7 @@ int main(int argc, char* argv[]) {
                             std::cout << "Would you like to pay $50 to exit the DC Tims Line? (Y/N): ";
                                 std::cin >> answer;
     
-                                if (answer == "Y") {
+                                if (answer == "Y" || answer == "y") {
                                     bool transaction_successful = currentPlayer->changeBalance(-50);
     
                                     if (transaction_successful) {
@@ -361,10 +441,10 @@ int main(int argc, char* argv[]) {
                         
                         if (currentPlayer->getNumCups() > 0) {
                             std::cout << "This is your last chance to get out of the DC Tims Line. Would you like to use your Roll up The Rum Cup?\n"
-                            "Note that if you don't use it now and don't have enough funds to pay bail, you will have to declare bancrupcy. (Y/N): ";
+                            "Note that if you don't use it now and don't have enough funds to pay bail, you will have to declare bankruptcy. (Y/N): ";
                             std::cin >> answer;
                             
-                            if (answer == "Y") {
+                            if (answer == "Y" || answer == "y") {
                                 currentPlayer->useCup();
                                 currentPlayer->leaveTimsLine();
                                 std::cout << "Transaction succesful, you are leaving the DC Tims Line." << std::endl;
@@ -392,10 +472,6 @@ int main(int argc, char* argv[]) {
                         }
                     }
                 }
-
-
-                
-
             } else {
 
                 std::cout << "> ";
@@ -404,56 +480,37 @@ int main(int argc, char* argv[]) {
                 if (command == "roll") {
                     if (!rolled) {
                         rolled = true;
-                        std::tuple<int, int, int> roll = currentPlayer->roll(board);
+                        std::tuple<int, int, int> roll = currentPlayer->roll(testing);
                         int prevPos = std::get<0>(roll);
                         int die1 = std::get<1>(roll);
                         int die2 = std::get<2>(roll);
                         if (die1 == die2) {
-                            std::cout << "You rolled doubles! You get to roll again.\n";
                             rolled = false;
+                            doubleCounter++;
+                            if (doubleCounter == 3) {
+                                std::cout << "You rolled doubles 3 times in a row! Go to DC Tims Line.\n";
+                                currentPlayer->sendToTimsLine(board);
+                                break;
+                            }
                         }
                         board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
                         board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
                         board.drawBoard();
+                        if (die1 == die2 && doubleCounter != 3) {
+                            std::cout << "You rolled doubles! You get to roll again.\n";
+                        }
+                        std::cout << currentPlayer->getName() << " rolled " << die1 << " + " << die2 << " = " << die1+die2 << std::endl;
+                        std::cout << currentPlayer->getName() << " moved to " << board.getSquare(currentPlayer->getPosition())->getName() << std::endl;
+                        std::cout << "\nEnter \"help\" for a list of commands.\n";
                     } else {
                         std::cout << "You have already rolled this turn.\n";
                     }
-                } else if (command == "move") {
-                    std::string n;
-
-                    std::cin >> n;
-                    
-                    if (isInteger(n)) {
-                        int n_int = std::stoi(n);
-                        int prevPos = currentPlayer->move(n_int, board);
-                        board.getSquare(prevPos)->removePlayer(currentPlayer->shared_from_this());
-                        board.getSquare(currentPlayer->getPosition())->addPlayer(currentPlayer->shared_from_this());
-                        board.drawBoard();
-                        std::cout << "Moved to " << board.getSquare(currentPlayer->getPosition())->getName() << std::endl;
-                        rolled = true;
+                }else if (command == "next") {
+                    if (rolled) {
+                        break;
                     } else {
-                        std::cout << n << " is not an integer.";
+                        std::cout << "You must roll before you can end your turn.\n";
                     }
-
-                } else if (command == "buy") {
-                    if (!rolled) {
-                        std::cout << "You must roll before you can buy.\n";
-                        continue;
-                    } else if (board.getSquare(currentPlayer->getPosition())->isOwnable()) {
-                        if (ownable->getOwner()) {
-                            std::cout << "This property is already owned by " << ownable->getOwner()->getName() << ".\n";
-                        } else if (currentPlayer->changeBalance(-ownable->getCost())) {
-                            ownable->purchase(currentPlayer.get());
-                            std::cout << currentPlayer->getName() << " purchased " << ownable->getName() << " for $" << ownable->getCost() << ".\n";
-                            std::cout << "New balance: $" << currentPlayer->getBalance() << "\n";
-                        } else {
-                            std::cout << "Not enough funds to purchase this property.\n";
-                        }
-                    } else {
-                        std::cout << "This property cannot be purchased.\n";
-                    }
-                } else if (command == "next" && rolled) {
-                    break;
                 } else if (command == "assets") {
                     currentPlayer->displayAssets();
                 } else if (command == "all") {
@@ -496,6 +553,12 @@ int main(int argc, char* argv[]) {
 
                             if (action == "buy") {
                                 academic->improve(currentPlayer.get());
+                                if (academic->numImprovements() == 5) {
+                                    std::cout << currentPlayer->getName() << "has bought a cafeteria for " << property << ".\n";
+                                    std::cout << "You have reached the maximum number of improvements on this property.\n";
+                                } else {
+                                    std::cout << currentPlayer->getName() << " has bought Bathroom #" << academic->numImprovements() << " for " << property << ".\n";
+                                }
                             } else if (action == "sell") {
                                 academic->degrade(currentPlayer.get());
                             } else {
@@ -549,11 +612,11 @@ int main(int argc, char* argv[]) {
                         continue;
                     }
 
-                    if (currentPlayer->getBalance() < (ownable->getCost() / 2) * 0.1) {
+                    if (currentPlayer->getBalance() < ownable->getCost() * 0.6) {
                         std::cout << "Not enough money to unmortgage property" << std::endl;
                     } else {
                         ownable->unmortgage();
-                        currentPlayer->changeBalance(-((ownable->getCost() / 2) * 0.1));
+                        currentPlayer->changeBalance(-(ownable->getCost() * 0.6));
                         std::cout << property << " has been unmortgaged.\n";
                     }
                 
@@ -569,8 +632,8 @@ int main(int argc, char* argv[]) {
                     "> mortgage <property>         - Mortgage a property.\n"
                     "> unmortgage <property>       - Unmortgage a property.\n"
                     "> bankrupt                    - Declare bankruptcy (only when required).\n"
-                    "> assets                      - Show current player’s assets.\n"
-                    "> all                         - Show all players’ assets.\n"
+                    "> assets                      - Show current player's assets.\n"
+                    "> all                         - Show all players' assets.\n"
                     "> save <filename>             - Save the current game state.\n"
                     "> help                        - Show this help message.\n\n"
                     "Note: Properties with improvements cannot be traded or mortgaged.\n"
@@ -596,7 +659,7 @@ int main(int argc, char* argv[]) {
         
                         std::cin >> decision;
         
-                        if (decision == "Y") {
+                        if (decision == "Y" || decision == "y") {
                             if (!giveInt && !receiveInt) { // trade property for property                     
                                 Ownable* give_ptr = board.findOwnableByName(give);
                                 Ownable* receive_ptr = board.findOwnableByName(receive);

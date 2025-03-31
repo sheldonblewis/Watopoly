@@ -408,7 +408,7 @@ void Board::startAuction(std::shared_ptr<Ownable> property, std::vector<std::sha
         for (auto& player : players) {
             if (!activeBidders[player->getName()] || player->isBankrupt()) continue;
 
-            std::cout << player->getName() << "'s turn to bid (current bid: $" << currentBid << "). Enter bid or 'withdraw': ";
+            std::cout << player->getName() << "'s turn to bid (current bid: $" << currentBid << "). Enter your bid or 'withdraw': ";
             std::string input;
             std::cin >> input;
 
@@ -417,12 +417,18 @@ void Board::startAuction(std::shared_ptr<Ownable> property, std::vector<std::sha
                 continue;
             }
 
-            int bid = std::stoi(input);
-            if (bid > currentBid && bid <= player->getBalance()) {
-                currentBid = bid;
-                highestBidder = player;
-            } else {
-                std::cout << "Invalid bid. Must be greater than $" << currentBid << " and <= your current money.\n";
+            if (std::stoi(input)) {
+                int bid = std::stoi(input);
+                if (bid > currentBid && bid <= player->getBalance()) {
+                    currentBid = bid;
+                    highestBidder = player;
+                } else {
+                    std::cout << "Invalid bid. Must be greater than $" << currentBid << " and <= your current balance.\n";
+                }
+            }
+            else {
+                std::cout << "Invalid input. Please enter a valid bid or 'withdraw'.\n";
+                continue;
             }
         }
 
